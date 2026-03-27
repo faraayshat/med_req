@@ -18,7 +18,9 @@ import {
   Activity, 
   History,
   FileText,
-  AlertCircle 
+  AlertCircle,
+  ClipboardList,
+  PlusCircle
 } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -153,11 +155,11 @@ export default function NewSubmissionPage() {
                   <input type="number" {...register("age")} className="w-full border border-slate-200 rounded-xl py-2.5 bg-white transition-all focus:ring-2 focus:ring-primary focus:border-transparent outline-none" />
                 </div>
                 <div>
-                  <label className="text-sm font-bold text-slate-700 block mb-1.5 border-none underline-none">Height (cm)</label>
+                  <label className="text-sm font-bold text-slate-700 block mb-1.5 border-none underline-none font-bold">Height (cm)</label>
                   <input type="number" step="0.1" {...register("height")} className="w-full border border-slate-200 rounded-xl py-2.5 bg-white transition-all focus:ring-2 focus:ring-primary focus:border-transparent outline-none" />
                 </div>
                 <div>
-                  <label className="text-sm font-bold text-slate-700 block mb-1.5 border-none underline-none">Weight (kg)</label>
+                  <label className="text-sm font-bold text-slate-700 block mb-1.5 border-none underline-none font-bold">Weight (kg)</label>
                   <input type="number" step="0.1" {...register("weight")} className="w-full border border-slate-200 rounded-xl py-2.5 bg-white transition-all focus:ring-2 focus:ring-primary focus:border-transparent outline-none" />
                 </div>
               </div>
@@ -166,7 +168,7 @@ export default function NewSubmissionPage() {
             {/* Symptoms & History */}
             <div className="space-y-6 underline-none">
               <div>
-                <label className="text-sm font-bold text-slate-700 flex items-center gap-2 mb-2 border-none underline-none">
+                <label className="text-sm font-bold text-slate-700 flex items-center gap-2 mb-2 border-none underline-none font-bold">
                   <Thermometer className="w-4 h-4" /> Current Symptoms
                 </label>
                 <textarea 
@@ -178,7 +180,7 @@ export default function NewSubmissionPage() {
               </div>
 
               <div>
-                <label className="text-sm font-bold text-slate-700 flex items-center gap-2 mb-2 border-none underline-none">
+                <label className="text-sm font-bold text-slate-700 flex items-center gap-2 mb-2 border-none underline-none font-bold">
                   <History className="w-4 h-4" /> Medical History
                 </label>
                 <textarea 
@@ -193,13 +195,13 @@ export default function NewSubmissionPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 underline-none">
               <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:bg-slate-50 transition-colors">
                 <FileText className="w-8 h-8 text-slate-300 mx-auto mb-3" />
-                <label className="text-sm font-bold text-slate-700 block mb-1 border-none underline-none">Prescription</label>
+                <label className="text-sm font-bold text-slate-700 block mb-1 border-none underline-none font-bold">Prescription</label>
                 <input type="file" onChange={(e) => setPrescriptionFile(e.target.files?.[0] || null)} className="w-full text-xs text-slate-500" />
               </div>
 
               <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:bg-slate-50 transition-colors">
                 <Activity className="w-8 h-8 text-slate-300 mx-auto mb-3" />
-                <label className="text-sm font-bold text-slate-700 block mb-1 border-none underline-none">Blood Report</label>
+                <label className="text-sm font-bold text-slate-700 block mb-1 border-none underline-none font-bold">Blood Report</label>
                 <input type="file" onChange={(e) => setReportFile(e.target.files?.[0] || null)} className="w-full text-xs text-slate-500" />
               </div>
             </div>
@@ -207,7 +209,7 @@ export default function NewSubmissionPage() {
             <button
               type="submit"
               disabled={uploading}
-              className="w-full bg-primary text-white font-extrabold rounded-2xl py-4 shadow-xl shadow-blue-100 hover:shadow-blue-200 hover:bg-blue-700 active:scale-[0.99] transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-3 text-lg"
+              className="w-full bg-blue-600 text-white font-extrabold rounded-2xl py-4 shadow-xl shadow-blue-100 hover:shadow-blue-200 hover:bg-blue-700 active:scale-[0.99] transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-3 text-lg"
             >
               {uploading ? (
                 <>
@@ -223,75 +225,6 @@ export default function NewSubmissionPage() {
             </button>
           </form>
         </motion.div>
-      </div>
-    </div>
-  );
-}
-
-  return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-2xl mx-auto bg-white p-8 rounded shadow">
-        <h1 className="text-2xl font-bold mb-6">Patient Information Form</h1>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium">Full Name</label>
-              <input {...register("fullName")} className="w-full p-2 border rounded" />
-              {errors.fullName && <p className="text-red-500 text-xs">{errors.fullName.message as string}</p>}
-            </div>
-            <div>
-              <label className="block text-sm font-medium">Date of Birth</label>
-              <input type="date" {...register("dob")} className="w-full p-2 border rounded" />
-              {errors.dob && <p className="text-red-500 text-xs">{errors.dob.message as string}</p>}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium">Age</label>
-              <input type="number" {...register("age")} className="w-full p-2 border rounded" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium">Height (cm)</label>
-              <input type="number" step="0.1" {...register("height")} className="w-full p-2 border rounded" />
-              {errors.height && <p className="text-red-500 text-xs">{errors.height.message as string}</p>}
-            </div>
-            <div>
-              <label className="block text-sm font-medium">Weight (kg)</label>
-              <input type="number" step="0.1" {...register("weight")} className="w-full p-2 border rounded" />
-              {errors.weight && <p className="text-red-500 text-xs">{errors.weight.message as string}</p>}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">Symptoms</label>
-            <textarea {...register("symptoms")} className="w-full p-2 border rounded h-24" placeholder="Describe symptoms (e.g., headache, fever, cough)"></textarea>
-            {errors.symptoms && <p className="text-red-500 text-xs">{errors.symptoms.message as string}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">Previous Medical History / Illnesses</label>
-            <textarea {...register("medicalHistory")} className="w-full p-2 border rounded h-20"></textarea>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">Previous Prescriptions (Optional)</label>
-            <input type="file" onChange={(e) => setPrescriptionFile(e.target.files?.[0] || null)} className="w-full text-sm" />
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">Blood Test Reports (Optional)</label>
-            <input type="file" onChange={(e) => setReportFile(e.target.files?.[0] || null)} className="w-full text-sm" />
-          </div>
-
-          <button
-            type="submit"
-            disabled={uploading}
-            className="w-full bg-blue-600 text-white rounded py-3 font-semibold hover:bg-blue-700 disabled:bg-blue-300"
-          >
-            {uploading ? "Submitting..." : "Submit and View Results"}
-          </button>
-        </form>
       </div>
     </div>
   );
