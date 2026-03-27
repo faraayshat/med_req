@@ -22,18 +22,22 @@ export default function Signup() {
   const router = useRouter();
 
   const handleAuthSuccess = async (user: any, extraData: any = {}) => {
-    await setDoc(doc(db, "users", user.uid), {
-      uid: user.uid,
-      email: user.email,
-      fullName: extraData.fullName || user.displayName || "Patient",
-      phone: extraData.phone || "",
-      address: extraData.address || "",
-      createdAt: new Date()
-    }, { merge: true });
+    try {
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        email: user.email,
+        fullName: extraData.fullName || user.displayName || "Patient",
+        phone: extraData.phone || "",
+        address: extraData.address || "",
+        createdAt: new Date()
+      }, { merge: true });
 
-    const token = await user.getIdToken();
-    setCookie("__session", token, { maxAge: 60 * 60 * 24 * 7 });
-    router.push("/dashboard");
+      setCookie("__session", user.uid, { maxAge: 60 * 60 * 24 * 7 });
+      router.push("/dashboard");
+    } catch (err: any) {
+      console.error("Firestore Error:", err);
+      setError("Failed to create medical profile. Please try again.");
+    }
   };
 
   const handleSignup = async (e: React.FormEvent) => {

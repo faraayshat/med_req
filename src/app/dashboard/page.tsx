@@ -25,32 +25,42 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { deleteCookie } from "cookies-next";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function Dashboard() {
+  const { user: authUser, loading: authLoading } = useAuth();
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("Patient");
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        setUserName(user.displayName || "Patient");
+    if (authLoading) return;
+    if (!authUser) {
+      router.push("/login");
+      return;
+    }
+
+    const fetchReports = async () => {
+      try {
+        setUserName(authUser.displayName || "Patient");
         const q = query(
           collection(db, "reports"),
-          where("userId", "==", user.uid),
+          where("userId", "==", authUser.uid),
           orderBy("createdAt", "desc"),
           limit(5)
         );
         const querySnapshot = await getDocs(q);
         setReports(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      } catch (err) {
+        console.error("Dashboard error:", err);
+      } finally {
         setLoading(false);
-      } else {
-        router.push("/login");
       }
-    });
-    return () => unsubscribe();
-  }, [router]);
+    };
+
+    fetchReports();
+  }, [authUser, authLoading, router]);
 
   const handleLogout = async () => {
     await auth.signOut();

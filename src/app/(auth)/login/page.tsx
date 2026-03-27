@@ -16,8 +16,7 @@ export default function Login() {
   const router = useRouter();
 
   const handleAuthSuccess = async (user: any) => {
-    const token = await user.getIdToken();
-    setCookie("__session", token, { maxAge: 60 * 60 * 24 * 7 });
+    setCookie("__session", user.uid, { maxAge: 60 * 60 * 24 * 7 });
     router.push("/dashboard");
   };
 
