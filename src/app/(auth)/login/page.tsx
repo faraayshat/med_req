@@ -1,159 +1,146 @@
 "use client";
 
 import { useState } from "react";
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, googleProvider } from "@/lib/firebase";
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Activity, Mail, Lock, LogIn, AlertCircle } from "lucide-react";
-import { motion } from "framer-motion";
 import { setCookie } from "cookies-next";
+import { Heart, Mail, Lock, Languages, ArrowRight, ShieldCheck, Activity } from "lucide-react";
+import { motion } from "framer-motion";
 
-export default function LoginPage() {
+export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  const handleAuthSuccess = async (user: any) => {
+    const token = await user.getIdToken();
+    setCookie("__session", token, { maxAge: 60 * 60 * 24 * 7 });
+    router.push("/dashboard");
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
-
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      setCookie("__session", userCredential.user.uid, { maxAge: 60 * 60 * 24 * 7 });
-      router.push("/dashboard");
+      const { user } = await signInWithEmailAndPassword(auth, email, password);
+      await handleAuthSuccess(user);
     } catch (err: any) {
-      setError(err.message.replace("Firebase: ", ""));
-    } finally {
-      setLoading(false);
+      setError(err.message);
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setError("");
-    setLoading(true);
-    const provider = new GoogleAuthProvider();
+  const handleGoogleLogin = async () => {
     try {
-      const result = await signInWithPopup(auth, provider);
-      setCookie("__session", result.user.uid, { maxAge: 60 * 60 * 24 * 7 });
-      router.push("/dashboard");
+      const { user } = await signInWithPopup(auth, googleProvider);
+      await handleAuthSuccess(user);
     } catch (err: any) {
-      setError(err.message.replace("Firebase: ", ""));
-    } finally {
-      setLoading(false);
+      setError(err.message);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-slate-50">
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-slate-100"
-      >
-        <div className="flex flex-col items-center mb-8">
-          <div className="bg-blue-100 p-3 rounded-full mb-4">
-            <Activity className="w-8 h-8 text-blue-600" />
-          </div>
-          <h1 className="text-2xl font-bold text-slate-900 text-center">Welcome Back</h1>
-          <p className="text-slate-500 text-sm mt-1">Sign in to your health portal</p>
-        </div>
+    <div className="min-h-screen flex flex-col lg:flex-row bg-white relative overflow-hidden">
+      {/* Branding Side - Hidden on Mobile */}
+      <div className="hidden lg:flex lg:w-1/2 bg-slate-950 p-20 flex-col justify-between relative overflow-hidden group">
+         <div className="absolute top-0 right-0 w-[80%] h-[80%] bg-rose-600/10 rounded-full blur-[120px] -z-0" />
+         
+         <div className="relative z-10 flex items-center gap-3">
+            <div className="bg-white/10 p-3 rounded-2xl">
+               <Heart className="w-8 h-8 text-rose-500 fill-rose-500/20" />
+            </div>
+            <span className="text-3xl font-[1000] text-white tracking-widest italic uppercase">HealthDesk</span>
+         </div>
 
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3 text-red-600 text-sm">
-            <AlertCircle className="w-5 h-5 shrink-0" />
-            <p>{error}</p>
-          </div>
-        )}
+         <div className="relative z-10 space-y-8">
+            <h1 className="text-7xl font-[1000] text-white leading-[1.05] tracking-tighter">Secure <br/> Patient <br/> <span className="text-rose-600">Portal.</span></h1>
+            <p className="text-slate-400 text-xl font-medium max-w-md leading-relaxed">Access your medical history, vitals log, and physician-reviewed reports in one unified dashboard.</p>
+         </div>
 
-        {/* Google Sign In Button */}
-        <button
-          onClick={handleGoogleSignIn}
-          disabled={loading}
-          className="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 rounded-xl py-2.5 text-slate-700 font-semibold hover:bg-slate-50 transition-all mb-6 active:scale-[0.98]"
+         <div className="relative z-10 flex gap-4 bg-white/5 border border-white/10 p-4 rounded-3xl w-fit">
+            <div className="bg-rose-500/10 p-3 rounded-2xl">
+               <ShieldCheck className="w-7 h-7 text-rose-500" />
+            </div>
+            <div>
+               <p className="text-white font-black text-sm uppercase tracking-widest">Metabolic Shield</p>
+               <p className="text-slate-500 font-bold text-xs uppercase underline">Active Protection</p>
+            </div>
+         </div>
+      </div>
+
+      {/* Form Side */}
+      <div className="flex-1 flex flex-col items-center justify-center p-8 lg:p-20 relative bg-rose-50/50">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md space-y-12"
         >
-          <svg className="w-5 h-5" viewBox="0 0 24 24">
-            <path
-              fill="#4285F4"
-              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-            />
-            <path
-              fill="#34A853"
-              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-            />
-            <path
-              fill="#FBBC05"
-              d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.83z"
-            />
-            <path
-              fill="#EA4335"
-              d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.83c.87-2.6 3.3-4.53 6.16-4.53z"
-            />
-          </svg>
-          Continue with Google
-        </button>
-
-        <div className="relative mb-6">
-          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-100"></div></div>
-          <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-slate-400 font-semibold">Or with email</span></div>
-        </div>
-
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Email Address</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@example.com"
-                className="pl-10 w-full border border-slate-200 rounded-xl py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                required
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="pl-10 w-full border border-slate-200 rounded-xl py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                required
-              />
-            </div>
+          <div className="space-y-4">
+            <h2 className="text-5xl font-black text-slate-950 tracking-tighter">Welcome Back.</h2>
+            <p className="text-slate-500 text-lg font-bold">Please enter your credentials to access your portal</p>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white font-semibold rounded-xl py-3 hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-70 mt-4"
-          >
-            {loading ? (
-              <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
-            ) : (
-              <>
-                <LogIn className="w-5 h-5" />
-                Sign In
-              </>
-            )}
-          </button>
-        </form>
+          <div className="hospital-card p-10 space-y-8">
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div className="space-y-3">
+                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Email System ID</label>
+                <div className="relative group/input">
+                  <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within/input:text-rose-600 transition-colors" />
+                  <input
+                    type="email"
+                    placeholder="patient@id.com"
+                    className="hospital-input pl-14"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
 
-        <div className="mt-8 text-center text-sm text-slate-600">
-          First time here?{" "}
-          <Link href="/signup" className="text-blue-600 font-semibold hover:underline border-none">
-            Create an account
-          </Link>
-        </div>
-      </motion.div>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center px-1">
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Medical Password</label>
+                  <Link href="#" className="text-xs font-black text-rose-600 uppercase hover:underline">Forgot?</Link>
+                </div>
+                <div className="relative group/input">
+                  <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within/input:text-rose-600 transition-colors" />
+                  <input
+                    type="password"
+                    placeholder="••••••••"
+                    className="hospital-input pl-14"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              {error && <div className="p-5 bg-rose-50 text-rose-600 rounded-2xl text-sm font-black border-2 border-rose-100 flex items-center gap-3"><Activity className="w-5 h-5" /> {error}</div>}
+
+              <button type="submit" className="hospital-button-primary w-full py-6 text-xl group">
+                Enter Portal
+                <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </form>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center"><div className="w-full border-t-2 border-slate-100/50"></div></div>
+              <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-6 text-slate-400 font-black tracking-widest">Third Party Auth</span></div>
+            </div>
+
+            <button onClick={handleGoogleLogin} className="w-full flex items-center justify-center gap-4 p-5 bg-slate-50 border-2 border-slate-100 rounded-3xl font-black text-slate-900 hover:bg-white hover:border-rose-100 hover:shadow-xl transition-all group">
+              <div className="bg-white p-2 rounded-xl shadow-sm"><Languages className="w-5 h-5 text-rose-600" /></div>
+              Google Health Sync
+            </button>
+
+            <p className="text-center mt-12 text-slate-500 font-bold">
+              New patient?{" "}
+              <Link href="/signup" className="text-rose-600 font-black hover:underline underline-offset-8">Register Portal</Link>
+            </p>
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 }

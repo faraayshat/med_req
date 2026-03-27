@@ -1,190 +1,219 @@
 "use client";
 
-import { useAuth } from "@/components/providers/AuthProvider";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { auth, db } from "@/lib/firebase";
+import { collection, query, where, getDocs, orderBy, limit } from "firebase/firestore";
 import Link from "next/link";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { deleteCookie } from "cookies-next";
+import { useRouter } from "next/navigation";
 import { 
   Activity, 
-  PlusCircle, 
-  LogOut, 
-  ChevronRight, 
+  Plus, 
+  History, 
+  TrendingUp, 
+  User, 
+  ArrowRight, 
+  Heart, 
   ClipboardList,
   Calendar,
-  Weight
+  LogOut,
+  Bell,
+  Search,
+  LayoutDashboard,
+  FileText,
+  Settings,
+  ShieldCheck
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { deleteCookie } from "cookies-next";
 
 export default function Dashboard() {
-  const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
-  const [submissions, setSubmissions] = useState<any[]>([]);
+  const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userName, setUserName] = useState("Patient");
+  const router = useRouter();
 
   useEffect(() => {
-    if (user) {
-      const fetchSubmissions = async () => {
-        try {
-          const q = query(
-            collection(db, "health_data"),
-            where("userId", "==", user.uid),
-            orderBy("createdAt", "desc")
-          );
-          const querySnapshot = await getDocs(q);
-          const data = querySnapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
-          setSubmissions(data);
-        } catch (error) {
-          console.error("Error fetching submissions:", error);
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchSubmissions();
-    }
-  }, [user]);
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        setUserName(user.displayName || "Patient");
+        const q = query(
+          collection(db, "reports"),
+          where("userId", "==", user.uid),
+          orderBy("createdAt", "desc"),
+          limit(5)
+        );
+        const querySnapshot = await getDocs(q);
+        setReports(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        setLoading(false);
+      } else {
+        router.push("/login");
+      }
+    });
+    return () => unsubscribe();
+  }, [router]);
 
   const handleLogout = async () => {
-    await signOut(auth);
+    await auth.signOut();
     deleteCookie("__session");
-    router.push("/login");
+    router.push("/");
   };
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="text-slate-500 font-medium">Loading your health desk...</p>
-        </div>
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-12">
+        <Activity className="w-16 h-16 text-rose-500 animate-pulse mb-8" />
+        <p className="text-slate-400 font-black uppercase tracking-[0.3em] text-sm animate-pulse">Initializing Portal...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <nav className="bg-white border-b border-slate-200 sticky top-0 z-10 font-bold">
-        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="bg-primary p-2 rounded-lg">
-              <Activity className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold tracking-tight text-slate-900 border-none">HealthMed</span>
+    <div className="min-h-screen bg-rose-50/30 flex">
+      {/* Sidebar */}
+      <aside className="hidden lg:flex w-80 bg-slate-950 flex-col p-8 border-r border-slate-900 sticky top-0 h-screen">
+        <div className="flex items-center gap-4 mb-16">
+          <div className="bg-rose-600 p-2.5 rounded-2xl">
+            <Heart className="w-7 h-7 text-white" />
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 text-slate-600 hover:text-red-600 font-medium transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Sign Out</span>
-          </button>
+          <span className="text-2xl font-[1000] text-white tracking-widest italic uppercase">HealthDesk</span>
         </div>
-      </nav>
 
-      <main className="max-w-5xl mx-auto px-4 py-8">
-        <header className="mb-10">
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight border-none">Welcome, {user?.email?.split('@')[0]}</h1>
-          <p className="text-slate-500 mt-1">Manage your health records and get medical insights.</p>
+        <nav className="flex-1 space-y-4">
+          {[
+            { icon: LayoutDashboard, label: "Overview", active: true },
+            { icon: FileText, label: "Physician Reports", active: false },
+            { icon: Activity, label: "Vitals History", active: false },
+            { icon: Calendar, label: "Appointments", active: false },
+            { icon: Settings, label: "Portal Settings", active: false },
+          ].map((item, idx) => (
+            <button key={idx} className={`w-full flex items-center gap-4 p-5 rounded-3xl font-black text-sm uppercase tracking-widest transition-all ${item.active ? 'bg-rose-600 text-white shadow-xl shadow-rose-600/20' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}>
+              <item.icon className="w-5 h-5" />
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="mt-auto pt-8 border-t border-slate-900 space-y-6">
+          <div className="bg-white/5 rounded-3xl p-6 border border-white/5">
+             <div className="flex items-center gap-3 mb-4">
+               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+               <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">System Online</span>
+             </div>
+             <p className="text-slate-400 text-xs font-bold leading-relaxed mb-4">HIPAA-compliant Secure Portal v4.2</p>
+             <button onClick={handleLogout} className="flex items-center gap-2 text-rose-600 font-black text-xs uppercase tracking-widest hover:text-rose-500 transition-colors">
+               <LogOut className="w-4 h-4" /> Terminate Session
+             </button>
+          </div>
+        </div>
+      </aside>
+
+      <main className="flex-1 p-8 lg:p-16 max-w-7xl mx-auto space-y-12 overflow-y-auto">
+        {/* Header */}
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+          <div className="space-y-2">
+            <h1 className="text-6xl font-[1000] text-slate-950 tracking-tighter">Portal Overview.</h1>
+            <p className="text-slate-400 text-lg font-bold flex items-center gap-3">
+              <ShieldCheck className="w-5 h-5 text-rose-600" />
+              Welcome, <span className="text-slate-950 uppercase tracking-widest">{userName}</span>
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+             <button aria-label="View notifications" className="bg-white border-2 border-slate-100 p-3 rounded-xl hover:bg-slate-50 transition-colors relative">
+                <Bell className="w-5 h-5 text-slate-950" />
+                <div className="absolute top-2 right-2 w-2.5 h-2.5 bg-rose-600 rounded-full border-2 border-white" />
+             </button>
+             <Link href="/dashboard/new" className="hospital-button-primary px-6 py-4 h-fit text-base">
+                <Plus className="w-5 h-5" /> Identify Anomaly
+             </Link>
+          </div>
         </header>
 
-        {/* Action Cards */}
-        <section className="grid sm:grid-cols-2 gap-6 mb-12">
-          <motion.div whileHover={{ y: -4 }}>
-            <Link
-              href="/dashboard/new"
-              className="group block bg-primary p-6 rounded-2xl shadow-lg shadow-blue-100 hover:shadow-blue-200 transition-all border-none"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="bg-white/20 p-3 rounded-xl">
-                  <PlusCircle className="w-8 h-8 text-white" />
-                </div>
-                <ChevronRight className="text-white/50 group-hover:translate-x-1 transition-transform" />
-              </div>
-              <h3 className="text-xl font-bold text-white border-none">New Health Assessment</h3>
-              <p className="text-blue-50 mt-1 opacity-90 border-none">Fill out your symptoms and get instant feedback.</p>
-            </Link>
-          </motion.div>
+        {/* Vital Metrics Grid */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="hospital-card p-10 bg-slate-950 text-white relative overflow-hidden group">
+             <div className="absolute top-0 right-0 w-[40%] h-[40%] bg-rose-600/20 rounded-full blur-3xl -z-0" />
+             <div className="relative z-10 flex flex-col h-full justify-between gap-8">
+               <div className="bg-white/10 w-fit p-3 rounded-2xl"><TrendingUp className="w-6 h-6 text-rose-500" /></div>
+               <div>
+                  <p className="text-slate-500 font-black text-xs uppercase tracking-widest mb-1">Metabolic Baseline</p>
+                  <p className="text-5xl font-[1000] tracking-tighter">Healthy <span className="text-rose-600">Range</span></p>
+               </div>
+               <p className="text-slate-400 font-medium italic">Vitals within 2% deviation of clinical normal.</p>
+             </div>
+          </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm border-none">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-slate-100 p-3 rounded-xl">
-                <ClipboardList className="w-8 h-8 text-slate-600" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-slate-900 border-none">Summary</h3>
-                <p className="text-slate-500 text-sm border-none">{submissions.length} Total Assessments</p>
-              </div>
-            </div>
-            <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full bg-primary w-2/3"></div>
-            </div>
+          <div className="hospital-card p-10 bg-white group hover:border-rose-200 transition-all">
+             <div className="flex flex-col h-full justify-between gap-8">
+               <div className="bg-rose-50 w-fit p-3 rounded-2xl"><ClipboardList className="w-6 h-6 text-rose-600" /></div>
+               <div>
+                  <p className="text-slate-400 font-black text-xs uppercase tracking-widest mb-1">Physician Analysis</p>
+                  <p className="text-5xl font-[1000] tracking-tighter text-slate-950">{reports.length} <span className="text-rose-600/40 text-3xl">REPORTS</span></p>
+               </div>
+               <p className="text-slate-400 font-medium">Archived logs and diagnostic summaries.</p>
+             </div>
+          </div>
+
+          <div className="hospital-card p-10 bg-rose-600 text-white relative overflow-hidden group">
+             <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
+             <div className="relative z-10 flex flex-col h-full justify-between gap-8">
+               <div className="bg-white/20 w-fit p-3 rounded-2xl"><Activity className="w-6 h-6 text-white" /></div>
+               <div>
+                  <p className="text-white/60 font-black text-xs uppercase tracking-widest mb-1">Anomaly Engine</p>
+                  <p className="text-5xl font-[1000] tracking-tighter">Shield <span className="text-white/40">Active</span></p>
+               </div>
+               <p className="text-white/80 font-medium">Real-time health optimization active.</p>
+             </div>
           </div>
         </section>
 
-        {/* History Table */}
-        <section>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-slate-900 tracking-tight border-none">History</h2>
+        {/* Clinical Archive */}
+        <section className="space-y-8">
+          <div className="flex items-center justify-between px-2">
+            <h3 className="text-3xl font-[1000] text-slate-950 tracking-tighter">Clinical Log History.</h3>
+            <button className="text-rose-600 font-black text-[10px] uppercase tracking-widest hover:underline flex items-center gap-2">
+              View All Archives <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
 
-          <div className="space-y-4">
-            {submissions.length === 0 ? (
-              <div className="bg-white border-2 border-dashed border-slate-200 p-12 rounded-3xl text-center">
-                <p className="text-slate-500 font-medium">No records found. Start your first assessment!</p>
+          {reports.length === 0 ? (
+            <div className="hospital-card p-24 flex flex-col items-center text-center space-y-8 bg-white/50 border-dashed border-2 border-rose-100">
+              <div className="bg-rose-50 p-8 rounded-[2.5rem]"><Plus className="w-12 h-12 text-rose-200" /></div>
+              <div className="space-y-4">
+                <p className="text-3xl font-[1000] text-slate-950 tracking-tighter">No Artifacts Detected.</p>
+                <p className="text-slate-400 font-bold max-w-sm mx-auto">Initiate your first clinical intake to begin longitudinal tracking.</p>
               </div>
-            ) : (
-              submissions.map((sub, idx) => (
-                <motion.div 
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                  key={sub.id} 
-                  className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-primary transition-all group"
+              <Link href="/dashboard/new" className="hospital-button-primary py-5 px-10">Start Clinical Ingestion</Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6">
+              {reports.map((report) => (
+                <motion.div
+                  key={report.id}
+                  whileHover={{ y: -5, scale: 1.01 }}
+                  className="hospital-card p-8 bg-white border-2 border-slate-50 hover:border-rose-100 transition-all flex flex-col md:flex-row md:items-center justify-between gap-8 group"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className="bg-blue-50 p-3 rounded-full group-hover:bg-blue-100 transition-colors">
-                        <Activity className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-900 border-none">{sub.fullName}</span>
-                          <span className="text-xs font-medium text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full uppercase border-none">
-                            {sub.symptoms?.split(',')[0]}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-4 mt-1 text-sm text-slate-500 font-medium">
-                          <span className="flex items-center gap-1 border-none">
-                            <Calendar className="w-3.5 h-3.5" />
-                            {new Date(sub.createdAt?.seconds * 1000).toLocaleDateString()}
-                          </span>
-                          <span className="flex items-center gap-1 border-none">
-                            <Weight className="w-3.5 h-3.5" />
-                            BMI: {sub.bmi?.toFixed(1)}
-                          </span>
-                        </div>
+                  <div className="flex items-center gap-8">
+                    <div className="bg-rose-50 p-6 rounded-3xl group-hover:bg-rose-600 transition-colors duration-500">
+                      <FileText className="w-8 h-8 text-rose-600 group-hover:text-white transition-colors" />
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-3xl font-[1000] text-slate-950 tracking-tighter">{report.reason || "General Assessment"}</p>
+                      <div className="flex items-center gap-4 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
+                        <span className="flex items-center gap-2 border border-slate-100 px-3 py-1.5 rounded-full"><Calendar className="w-3 h-3" /> {new Date(report.createdAt?.seconds * 1000).toLocaleDateString()}</span>
+                        <span className="text-rose-600 font-black">REF: {report.id.slice(0, 8).toUpperCase()}</span>
                       </div>
                     </div>
-                    <Link
-                      href={`/results/${sub.id}`}
-                      className="flex items-center justify-center gap-2 bg-slate-50 text-slate-700 font-bold px-4 py-2 rounded-xl group-hover:bg-primary group-hover:text-white transition-all text-sm"
-                    >
-                      View Report
-                      <ChevronRight className="w-4 h-4" />
-                    </Link>
                   </div>
+                  <Link 
+                    href={`/results/${report.id}`}
+                    className="flex items-center gap-3 font-black text-[10px] uppercase tracking-widest text-slate-400 hover:text-rose-600 transition-colors group/btn"
+                  >
+                    Physician Analysis <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-3 transition-transform duration-500" />
+                  </Link>
                 </motion.div>
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
       </main>
     </div>

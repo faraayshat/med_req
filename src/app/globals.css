@@ -1,48 +1,39 @@
 @import "tailwindcss";
 
-:root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --primary: #2563eb;
-  --primary-foreground: #ffffff;
-  --secondary: #64748b;
-  --accent: #3b82f6;
-  --destructive: #ef4444;
-  --card: #ffffff;
-  --border: #e2e8f0;
+@config "../../tailwind.config.js";
+
+@theme {
+  --color-hospital-50: #fff1f2;
+  --color-hospital-100: #ffe4e6;
+  --color-hospital-200: #fecdd3;
+  --color-hospital-600: #e11d48;
+  --color-hospital-700: #be123c;
+  
+  --shadow-hospital: 0 32px 64px -16px rgba(225, 29, 72, 0.1);
+  --shadow-hospital-btn: 0 20px 40px -10px rgba(225, 29, 72, 0.4);
+  
+  --radius-hospital: 1.5rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-accent: var(--accent);
-  --color-destructive: var(--destructive);
-  --color-card: var(--card);
-  --color-border: var(--border);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@layer base {
+  body {
+    @apply bg-white text-slate-900 antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@utility hospital-card {
+  @apply bg-white/80 backdrop-blur-xl border border-rose-100/50 rounded-hospital shadow-hospital;
 }
 
-.auth-card {
-  @apply w-full max-w-md bg-card p-8 rounded-xl shadow-lg border border-border;
+@utility hospital-heading {
+  @apply text-[clamp(2rem,6vw,3.5rem)] font-[950] leading-[1.1] tracking-[-0.05em] text-slate-950;
 }
 
-.input-field {
-  @apply mt-1 block w-full border border-border rounded-lg px-4 py-2 bg-white transition-all focus:ring-2 focus:ring-primary focus:border-transparent outline-none;
+@utility hospital-button-primary {
+  @apply relative overflow-hidden bg-rose-600 text-white font-black px-8 py-4 rounded-full shadow-hospital-btn transition-all duration-300 hover:scale-[1.02] hover:bg-rose-700 active:scale-[0.98] flex items-center justify-center gap-3;
 }
 
-.btn-primary {
-  @apply w-full bg-primary text-primary-foreground font-semibold rounded-lg py-2.5 hover:bg-blue-700 transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+@utility hospital-input {
+  @apply w-full bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl outline-none focus:border-rose-400 focus:bg-white focus:ring-4 focus:ring-rose-50 transition-all text-base font-bold text-slate-900 placeholder:text-slate-400;
 }
-

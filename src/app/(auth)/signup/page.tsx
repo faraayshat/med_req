@@ -1,240 +1,180 @@
 "use client";
 
 import { useState } from "react";
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
+import { auth, db, googleProvider } from "@/lib/firebase";
+import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Activity, Mail, Lock, UserPlus, AlertCircle, User, Phone, MapPin } from "lucide-react";
-import { motion } from "framer-motion";
-import { doc, setDoc } from "firebase/firestore";
 import { setCookie } from "cookies-next";
+import { Heart, User, Mail, Lock, Phone, MapPin, Languages, ArrowRight, ShieldCheck } from "lucide-react";
+import { motion } from "framer-motion";
 
-export default function SignupPage() {
+export default function Signup() {
   const [formData, setFormData] = useState({
+    fullName: "",
     email: "",
     password: "",
-    fullName: "",
-    phoneNumber: "",
-    address: "",
+    phone: "",
+    address: ""
   });
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleAuthSuccess = async (user: any, extraData: any = {}) => {
+    await setDoc(doc(db, "users", user.uid), {
+      uid: user.uid,
+      email: user.email,
+      fullName: extraData.fullName || user.displayName || "Patient",
+      phone: extraData.phone || "",
+      address: extraData.address || "",
+      createdAt: new Date()
+    }, { merge: true });
+
+    const token = await user.getIdToken();
+    setCookie("__session", token, { maxAge: 60 * 60 * 24 * 7 });
+    router.push("/dashboard");
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
-
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-      const user = userCredential.user;
-
-      // Store additional user details in Firestore
-      await setDoc(doc(db, "users", user.uid), {
-        fullName: formData.fullName,
-        email: formData.email,
-        phoneNumber: formData.phoneNumber,
-        address: formData.address,
-        createdAt: new Date().toISOString(),
+      const { user } = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+      await handleAuthSuccess(user, { 
+        fullName: formData.fullName, 
+        phone: formData.phone, 
+        address: formData.address 
       });
-
-      setCookie("__session", user.uid, { maxAge: 60 * 60 * 24 * 7 });
-      router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message.replace("Firebase: ", ""));
-    } finally {
-      setLoading(false);
+      setError(err.message);
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setError("");
-    setLoading(true);
-    const provider = new GoogleAuthProvider();
+  const handleGoogleSignup = async () => {
     try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-
-      // For Google sign-in, we might not have all details initially
-      // but we ensure a user doc exists
-      await setDoc(doc(db, "users", user.uid), {
-        fullName: user.displayName || "Google User",
-        email: user.email,
-        createdAt: new Date().toISOString(),
-      }, { merge: true });
-
-      setCookie("__session", user.uid, { maxAge: 60 * 60 * 24 * 7 });
-      router.push("/dashboard");
+      const { user } = await signInWithPopup(auth, googleProvider);
+      await handleAuthSuccess(user);
     } catch (err: any) {
-      setError(err.message.replace("Firebase: ", ""));
-    } finally {
-      setLoading(false);
+      setError(err.message);
     }
   };
+
+  const inputClasses = "hospital-input pl-12";
+  const iconClasses = "absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-hospital-300";
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-slate-50 py-12">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-hospital-50">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-lg bg-white p-8 rounded-2xl shadow-xl border border-slate-100"
+        className="w-full max-w-xl"
       >
-        <div className="flex flex-col items-center mb-8 text-center">
-          <div className="bg-blue-100 p-3 rounded-full mb-4">
-            <Activity className="w-8 h-8 text-blue-600" />
+        <div className="text-center mb-10">
+          <div className="inline-flex p-3 bg-white rounded-2xl shadow-soft mb-4">
+             <Heart className="w-8 h-8 text-hospital-600 fill-hospital-50" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Create Account</h1>
-          <p className="text-slate-500 text-sm mt-1">Join HealthMed to track your medical journey</p>
+          <h1 className="hospital-heading mb-2">Patient Onboarding</h1>
+          <p className="text-slate-500 font-medium">Complete your medical profile below</p>
         </div>
 
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3 text-red-600 text-sm">
-            <AlertCircle className="w-5 h-5 shrink-0" />
-            <p>{error}</p>
-          </div>
-        )}
-
-        {/* Google Sign In Button */}
-        <button
-          onClick={handleGoogleSignIn}
-          disabled={loading}
-          className="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 rounded-xl py-2.5 text-slate-700 font-semibold hover:bg-slate-50 transition-all mb-6 active:scale-[0.98]"
-        >
-          <svg className="w-5 h-5" viewBox="0 0 24 24">
-            <path
-              fill="#4285F4"
-              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-            />
-            <path
-              fill="#34A853"
-              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-            />
-            <path
-              fill="#FBBC05"
-              d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.83z"
-            />
-            <path
-              fill="#EA4335"
-              d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.83c.87-2.6 3.3-4.53 6.16-4.53z"
-            />
-          </svg>
-          Continue with Google
-        </button>
-
-        <div className="relative mb-6">
-          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-100"></div></div>
-          <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-slate-400 font-semibold">Or with email</span></div>
-        </div>
-
-        <form onSubmit={handleSignup} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Full Name</label>
+        <div className="hospital-card grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <form onSubmit={handleSignup} className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700 ml-1">Full Name</label>
               <div className="relative">
-                <User className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
+                <User className={iconClasses} />
                 <input
-                  name="fullName"
                   type="text"
-                  value={formData.fullName}
-                  onChange={handleInputChange}
                   placeholder="John Doe"
-                  className="pl-10 w-full border border-slate-200 rounded-xl py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  className={inputClasses}
+                  value={formData.fullName}
+                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                   required
                 />
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Phone Number</label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
-                <input
-                  name="phoneNumber"
-                  type="tel"
-                  value={formData.phoneNumber}
-                  onChange={handleInputChange}
-                  placeholder="+1 (555) 000-0000"
-                  className="pl-10 w-full border border-slate-200 rounded-xl py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                />
-              </div>
-            </div>
-          </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Address (Optional)</label>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
-              <input
-                name="address"
-                type="text"
-                value={formData.address}
-                onChange={handleInputChange}
-                placeholder="123 Health St, Medical City"
-                className="pl-10 w-full border border-slate-200 rounded-xl py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Email Address</label>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700 ml-1">Email Address</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
+                <Mail className={iconClasses} />
                 <input
-                  name="email"
                   type="email"
+                  placeholder="john@hospital.com"
+                  className={inputClasses}
                   value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="name@example.com"
-                  className="pl-10 w-full border border-slate-200 rounded-xl py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
                 />
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Password</label>
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700 ml-1">Emergency Phone</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
+                <Phone className={iconClasses} />
                 <input
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  placeholder="••••••••"
-                  className="pl-10 w-full border border-slate-200 rounded-xl py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  type="tel"
+                  placeholder="+234..."
+                  className={inputClasses}
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   required
                 />
               </div>
             </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700 ml-1">Password</label>
+              <div className="relative">
+                <Lock className={iconClasses} />
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  className={inputClasses}
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-bold text-slate-700 ml-1">Residential Address</label>
+              <div className="relative">
+                <MapPin className={iconClasses} />
+                <input
+                  type="text"
+                  placeholder="Your full address"
+                  className={inputClasses}
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+
+            {error && <div className="md:col-span-2 p-4 bg-red-50 text-red-600 rounded-xl text-sm font-bold border border-red-100">{error}</div>}
+
+            <button type="submit" className="md:col-span-2 hospital-button-primary py-4 text-lg mt-4 group">
+              Register Account
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </button>
+          </form>
+
+          <div className="md:col-span-2 relative my-6">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-hospital-100"></div></div>
+            <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-4 text-slate-400 font-bold">Or use external identity</span></div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white font-semibold rounded-xl py-3 hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-70 mt-4"
-          >
-            {loading ? (
-              <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
-            ) : (
-              <>
-                <UserPlus className="w-5 h-5" />
-                Create Account
-              </>
-            )}
+          <button onClick={handleGoogleSignup} className="md:col-span-2 w-full flex items-center justify-center gap-3 p-4 border-2 border-hospital-100 rounded-2xl font-bold text-slate-700 hover:bg-hospital-50 hover:border-hospital-200 transition-all">
+            <ShieldCheck className="w-5 h-5 text-hospital-600" />
+            Google Health ID
           </button>
-        </form>
 
-        <div className="mt-8 text-center">
-          <p className="text-sm text-slate-600">
-            Already have an account?{" "}
-            <Link href="/login" className="text-blue-600 font-semibold hover:underline">
-              Sign in
-            </Link>
+          <p className="md:col-span-2 text-center mt-6 text-slate-500 font-medium">
+            Member already?{" "}
+            <Link href="/login" className="text-hospital-600 font-black hover:underline px-1">Login Securely</Link>
           </p>
         </div>
       </motion.div>
