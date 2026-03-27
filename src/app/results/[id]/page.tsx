@@ -62,7 +62,7 @@ export default function Results() {
         <div className="flex items-center gap-6">
           <button 
             onClick={() => router.push("/dashboard")}
-            className="p-4 bg-white/5 rounded-2xl text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+            className="p-4 bg-white/5 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-all"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -76,8 +76,8 @@ export default function Results() {
           </div>
         </div>
         <div className="flex items-center gap-4">
-           <button aria-label="Print report" className="bg-white/5 p-4 rounded-2xl text-slate-400 hover:text-white transition-colors"><Printer className="w-5 h-5" /></button>
-           <button aria-label="Share report" className="bg-white/5 p-4 rounded-2xl text-slate-400 hover:text-white transition-colors"><Share2 className="w-5 h-5" /></button>
+           <button aria-label="Print report" className="bg-white/5 p-4 rounded-full text-slate-400 hover:text-white transition-colors"><Printer className="w-5 h-5" /></button>
+           <button aria-label="Share report" className="bg-white/5 p-4 rounded-full text-slate-400 hover:text-white transition-colors"><Share2 className="w-5 h-5" /></button>
            <button className="hospital-button-primary py-4 px-8 flex items-center gap-2">
               <Download className="w-5 h-5" /> Secure PDF Export
            </button>

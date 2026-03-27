@@ -87,7 +87,7 @@ export default function NewReport() {
         <div className="flex items-center gap-6">
           <button 
             onClick={() => router.push("/dashboard")}
-            className="p-3 bg-slate-50 rounded-2xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all border border-transparent hover:border-rose-100"
+            className="p-3 bg-slate-50 rounded-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all border border-transparent hover:border-rose-100"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>

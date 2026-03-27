@@ -80,15 +80,15 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-rose-50/30 flex">
       {/* Sidebar */}
-      <aside className="hidden lg:flex w-80 bg-slate-950 flex-col p-8 border-r border-slate-900 sticky top-0 h-screen">
-        <div className="flex items-center gap-4 mb-16">
-          <div className="bg-rose-600 p-2.5 rounded-2xl">
-            <Heart className="w-7 h-7 text-white" />
+      <aside className="hidden lg:flex w-72 xl:w-80 bg-slate-950 flex-col p-6 xl:p-8 border-r border-slate-900 sticky top-0 h-screen">
+        <div className="flex items-center gap-3 xl:gap-4 mb-12 xl:mb-16">
+          <div className="bg-rose-600 p-2 xl:p-2.5 rounded-2xl">
+            <Heart className="w-6 h-6 xl:w-7 xl:h-7 text-white" />
           </div>
-          <span className="text-2xl font-[1000] text-white tracking-widest italic uppercase">HealthDesk</span>
+          <span className="text-xl xl:text-2xl font-[1000] text-white tracking-widest italic uppercase">HealthDesk</span>
         </div>
 
-        <nav className="flex-1 space-y-4">
+        <nav className="flex-1 space-y-3 xl:space-y-4">
           {[
             { icon: LayoutDashboard, label: "Overview", active: true },
             { icon: FileText, label: "Physician Reports", active: false },
@@ -96,57 +96,57 @@ export default function Dashboard() {
             { icon: Calendar, label: "Appointments", active: false },
             { icon: Settings, label: "Portal Settings", active: false },
           ].map((item, idx) => (
-            <button key={idx} className={`w-full flex items-center gap-4 p-5 rounded-3xl font-black text-sm uppercase tracking-widest transition-all ${item.active ? 'bg-rose-600 text-white shadow-xl shadow-rose-600/20' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}>
-              <item.icon className="w-5 h-5" />
+            <button key={idx} className={`w-full flex items-center gap-3 xl:gap-4 p-4 xl:p-5 rounded-full font-black text-xs xl:text-sm uppercase tracking-widest transition-all ${item.active ? 'bg-rose-600 text-white shadow-xl shadow-rose-600/20' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}>
+              <item.icon className="w-4 h-4 xl:w-5 xl:h-5" />
               {item.label}
             </button>
           ))}
         </nav>
 
-        <div className="mt-auto pt-8 border-t border-slate-900 space-y-6">
-          <div className="bg-white/5 rounded-3xl p-6 border border-white/5">
-             <div className="flex items-center gap-3 mb-4">
-               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-               <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">System Online</span>
+        <div className="mt-auto pt-6 xl:pt-8 border-t border-slate-900 space-y-4 xl:space-y-6">
+          <div className="bg-white/5 rounded-3xl p-5 xl:p-6 border border-white/5">
+             <div className="flex items-center gap-3 mb-3 xl:mb-4">
+               <div className="w-1.5 h-1.5 xl:w-2 xl:h-2 rounded-full bg-emerald-500 animate-pulse" />
+               <span className="text-[9px] xl:text-[10px] font-black text-emerald-500 uppercase tracking-widest">System Online</span>
              </div>
-             <p className="text-slate-400 text-xs font-bold leading-relaxed mb-4">HIPAA-compliant Secure Portal v4.2</p>
-             <button onClick={handleLogout} className="flex items-center gap-2 text-rose-600 font-black text-xs uppercase tracking-widest hover:text-rose-500 transition-colors">
-               <LogOut className="w-4 h-4" /> Terminate Session
+             <p className="text-slate-400 text-[10px] xl:text-xs font-bold leading-relaxed mb-3 xl:mb-4">HIPAA-compliant Secure Portal v4.2</p>
+             <button onClick={handleLogout} className="flex items-center gap-2 text-rose-600 font-black text-[10px] xl:text-xs uppercase tracking-widest hover:text-rose-500 transition-colors">
+               <LogOut className="w-3.5 h-3.5 xl:w-4 xl:h-4" /> Terminate Session
              </button>
           </div>
         </div>
       </aside>
 
-      <main className="flex-1 p-8 lg:p-16 max-w-7xl mx-auto space-y-12 overflow-y-auto">
+      <main className="flex-1 p-6 xl:p-16 max-w-7xl mx-auto space-y-10 xl:space-y-12 overflow-y-auto">
         {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 xl:gap-8">
           <div className="space-y-2">
-            <h1 className="text-6xl font-[1000] text-slate-950 tracking-tighter">Portal Overview.</h1>
-            <p className="text-slate-400 text-lg font-bold flex items-center gap-3">
-              <ShieldCheck className="w-5 h-5 text-rose-600" />
+            <h1 className="text-4xl xl:text-6xl font-[1000] text-slate-950 tracking-tighter">Portal Overview.</h1>
+            <p className="text-slate-400 text-base xl:text-lg font-bold flex items-center gap-2 xl:gap-3">
+              <ShieldCheck className="w-4 h-4 xl:w-5 xl:h-5 text-rose-600" />
               Welcome, <span className="text-slate-950 uppercase tracking-widest">{userName}</span>
             </p>
           </div>
           <div className="flex items-center gap-4">
-             <button aria-label="View notifications" className="bg-white border-2 border-slate-100 p-3 rounded-xl hover:bg-slate-50 transition-colors relative">
-                <Bell className="w-5 h-5 text-slate-950" />
-                <div className="absolute top-2 right-2 w-2.5 h-2.5 bg-rose-600 rounded-full border-2 border-white" />
+             <button aria-label="View notifications" className="bg-white border-2 border-slate-100 p-2.5 xl:p-3 rounded-xl hover:bg-slate-50 transition-colors relative">
+                <Bell className="w-4 h-4 xl:w-5 xl:h-5 text-slate-950" />
+                <div className="absolute top-1.5 right-1.5 xl:top-2 xl:right-2 w-2 xl:w-2.5 h-2 xl:h-2.5 bg-rose-600 rounded-full border-2 border-white" />
              </button>
-             <Link href="/dashboard/new" className="hospital-button-primary px-6 py-4 h-fit text-base">
-                <Plus className="w-5 h-5" /> Identify Anomaly
+             <Link href="/dashboard/new" className="hospital-button-primary px-5 xl:px-6 py-3 xl:py-4 h-fit text-sm xl:text-base">
+                <Plus className="w-4 h-4 xl:w-5 xl:h-5" /> Identify Anomaly
              </Link>
           </div>
         </header>
 
         {/* Vital Metrics Grid */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="hospital-card p-10 bg-slate-950 text-white relative overflow-hidden group">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 xl:gap-8">
+          <div className="hospital-card p-8 xl:p-10 bg-slate-950 text-white relative overflow-hidden group">
              <div className="absolute top-0 right-0 w-[40%] h-[40%] bg-rose-600/20 rounded-full blur-3xl -z-0" />
-             <div className="relative z-10 flex flex-col h-full justify-between gap-8">
-               <div className="bg-white/10 w-fit p-3 rounded-2xl"><TrendingUp className="w-6 h-6 text-rose-500" /></div>
+             <div className="relative z-10 flex flex-col h-full justify-between gap-6 xl:gap-8">
+               <div className="bg-white/10 w-fit p-2.5 xl:p-3 rounded-2xl"><TrendingUp className="w-5 h-5 xl:w-6 xl:h-6 text-rose-500" /></div>
                <div>
-                  <p className="text-slate-500 font-black text-xs uppercase tracking-widest mb-1">Metabolic Baseline</p>
-                  <p className="text-5xl font-[1000] tracking-tighter">Healthy <span className="text-rose-600">Range</span></p>
+                  <p className="text-slate-500 font-black text-[10px] xl:text-xs uppercase tracking-widest mb-1">Metabolic Baseline</p>
+                  <p className="text-4xl xl:text-5xl font-[1000] tracking-tighter">Healthy <span className="text-rose-600">Range</span></p>
                </div>
                <p className="text-slate-400 font-medium italic">Vitals within 2% deviation of clinical normal.</p>
              </div>
