@@ -18,10 +18,12 @@ import {
   ExternalLink,
   ArrowLeft,
   Filter,
-  Download
+  Download,
+  LogOut
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { deleteCookie } from "cookies-next";
 
 export default function RecordsPage() {
   const { user: authUser, loading: authLoading } = useAuth();
@@ -29,6 +31,16 @@ export default function RecordsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      deleteCookie("session");
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -81,123 +93,137 @@ export default function RecordsPage() {
           <div className="bg-rose-600 p-2.5 rounded-xl shadow-lg shadow-rose-200 group-hover/sidebar:rotate-[10deg] transition-transform">
             <Heart className="w-5 h-5 text-white fill-white/20" />
           </div>
-          <span className="hidden xl:block text-base font-black text-slate-950 tracking-tighter uppercase italic">Health<span className="text-rose-600">Med</span></span>
+          <span className="hidden xl:block text-sm font-black text-slate-950 tracking-tighter uppercase italic">Health<span className="text-rose-600">Med</span></span>
         </div>
 
-        <nav className="flex-1 px-4 space-y-2 mt-4">
+        <nav className="flex-1 px-4 space-y-1.5 mt-2">
           {[
             { icon: LayoutDashboard, label: "Overview", active: false, href: "/dashboard" },
             { icon: FileText, label: "Records", active: true, href: "/dashboard/records" },
-            { icon: Activity, label: "Vitals", active: false, href: "/dashboard" },
-            { icon: User, label: "Identity", active: false, href: "/dashboard/profile" },
+            { icon: Activity, label: "Vitals", active: false, href: "/dashboard/vitals" },
           ].map((item, idx) => (
-            <Link key={idx} href={item.href} className={`w-full flex items-center justify-center xl:justify-start gap-4 p-3.5 rounded-2xl transition-all duration-300 group ${item.active ? 'bg-slate-950 text-white shadow-xl shadow-slate-200' : 'text-slate-400 hover:text-rose-600 hover:bg-rose-50/50'}`}>
+            <Link key={idx} href={item.href} className={`w-full flex items-center justify-center xl:justify-start gap-3.5 p-3.5 rounded-2xl transition-all duration-300 group ${item.active ? 'bg-slate-950 text-white shadow-xl shadow-slate-200' : 'text-slate-400 hover:text-rose-600 hover:bg-rose-50/50'}`}>
               <item.icon className={`w-5 h-5 ${item.active ? 'text-rose-500' : ''}`} />
-              <span className="hidden xl:block text-[10px] font-black uppercase tracking-widest">{item.label}</span>
-              {item.active && <div className="hidden xl:block ml-auto w-1.5 h-1.5 rounded-full bg-rose-500 shadow-sm shadow-rose-500" />}
+              <span className="hidden xl:block text-xs font-black uppercase tracking-widest">{item.label}</span>
+              {item.active && <div className="hidden xl:block ml-auto w-2 h-2 rounded-full bg-rose-500 shadow-sm shadow-rose-500" />}
             </Link>
           ))}
         </nav>
+
+        <div className="p-4 xl:p-6 mt-auto">
+          <div className="bg-slate-50 rounded-2xl p-5 xl:p-6 border border-slate-100 relative overflow-hidden group/card shadow-sm">
+            <div className="hidden xl:block relative z-10">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Protocol v4</span>
+              </div>
+              <p className="text-[11px] text-slate-500 font-bold leading-tight">Your medical data is encrypted via AES-256.</p>
+            </div>
+            <div className="xl:hidden flex items-center justify-center w-full p-2 text-emerald-500">
+               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            </div>
+          </div>
+        </div>
       </aside>
 
       {/* Main Content Interface */}
       <main className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
         {/* Navigation / Header */}
-        <header className="h-20 bg-white/80 backdrop-blur-xl border-b border-slate-200 px-6 xl:px-12 flex items-center justify-between shrink-0 sticky top-0 z-50">
+        <header className="h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200 px-6 xl:px-10 flex items-center justify-between shrink-0 sticky top-0 z-50">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="p-2 hover:bg-slate-100 rounded-full transition-colors lg:hidden">
-              <ArrowLeft className="w-5 h-5 text-slate-950" />
+            <Link href="/dashboard" className="p-1.5 hover:bg-slate-100 rounded-full transition-colors lg:hidden">
+              <ArrowLeft className="w-4.5 h-4.5 text-slate-950" />
             </Link>
-            <h1 className="text-xl xl:text-2xl font-[1000] text-slate-950 tracking-tighter flex items-center gap-3">
-              Dashboard <span className="text-slate-200 font-light">/</span> <span className="text-rose-600 text-sm xl:text-base italic uppercase tracking-widest font-black">Records</span>
+            <h1 className="text-lg xl:text-xl font-[1000] text-slate-950 tracking-tighter flex items-center gap-2.5">
+              Dashboard <span className="text-slate-200 font-light">/</span> <span className="text-rose-600 text-xs xl:text-sm italic uppercase tracking-widest font-black">Records</span>
             </h1>
           </div>
 
-          <div className="flex items-center gap-3 xl:gap-6">
-            <div className="w-10 h-10 rounded-full bg-slate-950 flex items-center justify-center text-white text-[10px] font-black ring-2 ring-slate-100 ring-offset-2">
+          <div className="flex items-center gap-3 xl:gap-5">
+            <Link href="/dashboard/profile" className="w-8 h-8 rounded-full bg-slate-950 flex items-center justify-center text-white text-[9px] font-black ring-2 ring-slate-100 ring-offset-2">
               {authUser?.displayName?.substring(0, 2).toUpperCase() || "PT"}
-            </div>
+            </Link>
           </div>
         </header>
 
         {/* Scrollable Viewport */}
-        <div className="flex-1 overflow-y-auto p-6 xl:p-12 space-y-10 lg:max-w-6xl xl:max-w-[1400px]">
+        <div className="flex-1 overflow-y-auto p-6 xl:p-10 space-y-8 lg:max-w-6xl xl:max-w-[1400px]">
           
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 px-3 py-1 bg-rose-50 border border-rose-100 rounded-full w-fit">
-                <FileText className="w-3 h-3 text-rose-600" />
-                <span className="text-[9px] font-black text-rose-600 uppercase tracking-widest">Clinical Archive</span>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 px-2.5 py-0.5 bg-rose-50 border border-rose-100 rounded-full w-fit">
+                <FileText className="w-2.5 h-2.5 text-rose-600" />
+                <span className="text-[8px] font-black text-rose-600 uppercase tracking-widest">Clinical Archive</span>
               </div>
-              <h2 className="text-4xl xl:text-5xl font-[1000] text-slate-950 tracking-tighter leading-tight italic uppercase decoration-rose-100 decoration-8 underline-offset-[-2px]">
+              <h2 className="text-3xl xl:text-4xl font-[1000] text-slate-950 tracking-tighter leading-tight italic uppercase decoration-rose-100 decoration-8 underline-offset-[-2px]">
                 Medical <span className="text-rose-600 underline">Records</span>.
               </h2>
-              <p className="text-slate-400 text-xs font-bold uppercase tracking-widest max-w-lg">Access and manage your complete history of diagnostic artifacts and clinical syncs.</p>
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest max-w-lg">Access and manage your complete history of diagnostic artifacts and clinical syncs.</p>
             </div>
             
             <div className="flex items-center gap-3">
-              <div className="flex items-center bg-white rounded-2xl px-4 py-3 border border-slate-200 focus-within:border-rose-200 transition-all group shadow-sm">
-                <Search className="w-4 h-4 text-slate-400 group-focus-within:text-rose-500 transition-colors" />
+              <div className="flex items-center bg-white rounded-xl px-3.5 py-2.5 border border-slate-200 focus-within:border-rose-200 transition-all group shadow-sm">
+                <Search className="w-3.5 h-3.5 text-slate-400 group-focus-within:text-rose-500 transition-colors" />
                 <input 
                   type="text" 
                   placeholder="Filter by ID or Reason..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-transparent border-none focus:ring-0 text-[11px] font-bold text-slate-900 w-48 md:w-64 placeholder:text-slate-400 uppercase tracking-wider ml-2" 
+                  className="bg-transparent border-none focus:ring-0 text-[10px] font-bold text-slate-900 w-40 md:w-56 placeholder:text-slate-400 uppercase tracking-wider ml-2" 
                 />
               </div>
-              <button className="p-3.5 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-100 transition-all shadow-sm">
-                <Filter className="w-5 h-5" />
+              <button className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-100 transition-all shadow-sm">
+                <Filter className="w-4 h-4" />
               </button>
             </div>
           </div>
 
-          <section className="space-y-6 pb-12">
-            <div className="flex items-center justify-between px-4">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Showing {filteredReports.length} Artifacts</p>
-              <button className="flex items-center gap-2 text-[10px] font-black text-rose-600 uppercase tracking-widest hover:opacity-70 transition-opacity">
-                <Download className="w-3.5 h-3.5" /> Export All
+          <section className="space-y-5 pb-10">
+            <div className="flex items-center justify-between px-3">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Showing {filteredReports.length} Artifacts</p>
+              <button className="flex items-center gap-2 text-[9px] font-black text-rose-600 uppercase tracking-widest hover:opacity-70 transition-opacity">
+                <Download className="w-3 h-3" /> Export All
               </button>
             </div>
 
             {filteredReports.length === 0 ? (
-              <div className="bg-white p-24 rounded-[3rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center space-y-6 shadow-sm">
-                <div className="bg-slate-50 p-8 rounded-[2.5rem] shadow-inner">
-                  <Search className="w-12 h-12 text-slate-300" />
+              <div className="bg-white p-16 rounded-[2.5rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center space-y-5 shadow-sm">
+                <div className="bg-slate-50 p-6 rounded-[2rem] shadow-inner">
+                  <Search className="w-10 h-10 text-slate-300" />
                 </div>
-                <div className="space-y-2">
-                  <p className="text-2xl font-[1000] text-slate-400 tracking-tighter">No Matches Found.</p>
-                  <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Adjust your search parameters or sync new data</p>
+                <div className="space-y-1.5">
+                  <p className="text-xl font-[1000] text-slate-400 tracking-tighter">No Matches Found.</p>
+                  <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Adjust your search parameters or sync new data</p>
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 gap-3">
                 {filteredReports.map((report) => (
                   <motion.div
                     key={report.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     whileHover={{ scale: 1.005, backgroundColor: '#ffffff' }}
-                    className="group bg-white/40 border border-slate-100 p-6 xl:p-8 rounded-[2.5rem] hover:shadow-2xl hover:shadow-slate-200/50 hover:border-white transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden relative"
+                    className="group bg-white/40 border border-slate-100 p-5 xl:p-6 rounded-[2rem] hover:shadow-2xl hover:shadow-slate-200/50 hover:border-white transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-5 overflow-hidden relative"
                   >
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-rose-50/30 rounded-bl-[4rem] translate-x-10 -translate-y-10 group-hover:translate-x-8 group-hover:-translate-y-8 transition-transform" />
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-rose-50/30 rounded-bl-[3rem] translate-x-8 -translate-y-8 group-hover:translate-x-6 group-hover:-translate-y-6 transition-transform" />
                     
-                    <div className="flex items-center gap-6 relative z-10">
-                      <div className="bg-white p-5 rounded-[1.8rem] border border-slate-100 shadow-sm group-hover:bg-rose-50 transition-colors duration-500 flex items-center justify-center">
-                        <FileText className="w-7 h-7 text-slate-400 group-hover:text-rose-600 transition-all" />
+                    <div className="flex items-center gap-5 relative z-10">
+                      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm group-hover:bg-rose-50 transition-colors duration-500 flex items-center justify-center">
+                        <FileText className="w-6 h-6 text-slate-400 group-hover:text-rose-600 transition-all" />
                       </div>
                       <div>
-                        <div className="flex items-center gap-3 mb-1">
-                           <span className="px-2 py-0.5 bg-rose-50 text-rose-600 text-[8px] font-black uppercase tracking-widest rounded-md border border-rose-100">Verified</span>
-                           <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">ID: {report.id}</span>
+                        <div className="flex items-center gap-2 mb-0.5">
+                           <span className="px-1.5 py-0.5 bg-rose-50 text-rose-600 text-[7px] font-black uppercase tracking-widest rounded-md border border-rose-100">Verified</span>
+                           <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">ID: {report.id}</span>
                         </div>
-                        <p className="text-xl xl:text-2xl font-[1000] text-slate-950 tracking-tighter group-hover:text-rose-600 transition-colors uppercase italic">{report.reason || "General Assessment"}</p>
-                        <div className="flex items-center gap-4 mt-3">
-                           <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                             <Clock className="w-3.5 h-3.5" /> {new Date(report.createdAt?.seconds * 1000).toLocaleDateString()}
+                        <p className="text-lg xl:text-xl font-[1000] text-slate-950 tracking-tighter group-hover:text-rose-600 transition-colors uppercase italic">{report.reason || "General Assessment"}</p>
+                        <div className="flex items-center gap-3 mt-2">
+                           <span className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                             <Clock className="w-3 h-3" /> {new Date(report.createdAt?.seconds * 1000).toLocaleDateString()}
                            </span>
-                           <div className="w-1.5 h-1.5 rounded-full bg-slate-200" />
-                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Encrypted Artifact</span>
+                           <div className="w-1 h-1 rounded-full bg-slate-200" />
+                           <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Encrypted Artifact</span>
                         </div>
                       </div>
                     </div>

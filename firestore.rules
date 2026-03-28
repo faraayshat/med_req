@@ -1,24 +1,13 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Correct security rules for the /reports/ collection used in the app
-    match /reports/{document=**} {
-      // 1. Authenticated users can only read/write documents they own
-      // 2. userId must match the authenticated uid
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-      
-      // 3. Prevent creating documents with a spoofed userId
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    match /reports/{reportId} {
+      allow read: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid);
+      allow write: if request.auth != null && (resource == null || request.resource.data.userId == request.auth.uid);
     }
     
-    // User metadata and individual user data
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    // Default deny for everything else
-    match /{document=**} {
-      allow read, write: if false;
     }
   }
 }

@@ -18,13 +18,15 @@ import {
   Lock,
   Loader2,
   Clock,
-  History,
-  FileText,
-  ChevronRight,
-  UserCircle
+  History, 
+  FileText, 
+  ChevronRight, 
+  UserCircle,
+  LogOut
 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { deleteCookie } from "cookies-next";
 import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function ProfileSettings() {
@@ -86,6 +88,12 @@ export default function ProfileSettings() {
     fetchProfileData();
   }, [authUser, authLoading, router]);
 
+  const handleLogout = async () => {
+    await auth.signOut();
+    deleteCookie("__session");
+    router.push("/");
+  };
+
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!authUser) return;
@@ -136,76 +144,98 @@ export default function ProfileSettings() {
           <div className="bg-rose-600 p-2.5 rounded-xl shadow-lg shadow-rose-200 group-hover/sidebar:rotate-[10deg] transition-transform">
             <Heart className="w-5 h-5 text-white fill-white/20" />
           </div>
-          <span className="hidden xl:block text-base font-black text-slate-950 tracking-tighter uppercase italic">Health<span className="text-rose-600">Med</span></span>
+          <span className="hidden xl:block text-sm font-black text-slate-950 tracking-tighter uppercase italic">Health<span className="text-rose-600">Med</span></span>
         </div>
 
-        <nav className="flex-1 px-4 space-y-2 mt-4">
+        <nav className="flex-1 px-4 space-y-1.5 mt-2">
           {[
             { icon: LayoutDashboard, label: "Overview", active: false, href: "/dashboard" },
             { icon: FileText, label: "Records", active: false, href: "/dashboard/records" },
             { icon: Activity, label: "Vitals", active: false, href: "/dashboard/vitals" },
-            { icon: User, label: "Identity", active: true, href: "/dashboard/profile" },
           ].map((item, idx) => (
-            <Link key={idx} href={item.href} className={`w-full flex items-center justify-center xl:justify-start gap-4 p-3.5 rounded-2xl transition-all duration-300 group ${item.active ? 'bg-slate-950 text-white shadow-xl shadow-slate-200' : 'text-slate-400 hover:text-rose-600 hover:bg-rose-50/50'}`}>
+            <Link key={idx} href={item.href} className={`w-full flex items-center justify-center xl:justify-start gap-3.5 p-3.5 rounded-2xl transition-all duration-300 group ${item.active ? 'bg-slate-950 text-white shadow-xl shadow-slate-200' : 'text-slate-400 hover:text-rose-600 hover:bg-rose-50/50'}`}>
               <item.icon className={`w-5 h-5 ${item.active ? 'text-rose-500' : ''}`} />
-              <span className="hidden xl:block text-[10px] font-black uppercase tracking-widest">{item.label}</span>
-              {item.active && <div className="hidden xl:block ml-auto w-1.5 h-1.5 rounded-full bg-rose-500 shadow-sm shadow-rose-500" />}
+              <span className="hidden xl:block text-xs font-black uppercase tracking-widest">{item.label}</span>
+              {item.active && <div className="hidden xl:block ml-auto w-2 h-2 rounded-full bg-rose-500 shadow-sm shadow-rose-500" />}
             </Link>
           ))}
         </nav>
+        <div className="p-4 xl:p-6 mt-auto">
+          <div className="bg-slate-50 rounded-2xl p-5 xl:p-6 border border-slate-100 relative overflow-hidden group/card shadow-sm">
+            <div className="hidden xl:block relative z-10">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Protocol v4</span>
+              </div>
+              <p className="text-[11px] text-slate-500 font-bold mb-3 leading-tight">Your medical data is encrypted via AES-256.</p>
+              <button 
+                onClick={handleLogout}
+                className="flex items-center gap-2 text-[10px] font-black text-rose-600 uppercase tracking-widest hover:gap-3 transition-all"
+              >
+                Logout <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <button 
+              onClick={handleLogout}
+              className="xl:hidden flex items-center justify-center w-full p-2 text-rose-600"
+            >
+               <LogOut className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
       </aside>
 
       <main className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
-        <header className="h-20 bg-white/80 backdrop-blur-xl border-b border-slate-200 px-6 xl:px-12 flex items-center justify-between shrink-0 sticky top-0 z-50">
+        <header className="h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200 px-6 xl:px-10 flex items-center justify-between shrink-0 sticky top-0 z-50">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="p-2 hover:bg-slate-100 rounded-full transition-colors lg:hidden">
-              <ArrowLeft className="w-5 h-5 text-slate-950" />
+            <Link href="/dashboard" className="p-1.5 hover:bg-slate-100 rounded-full transition-colors lg:hidden">
+              <ArrowLeft className="w-4.5 h-4.5 text-slate-950" />
             </Link>
-            <h1 className="text-xl xl:text-2xl font-[1000] text-slate-950 tracking-tighter flex items-center gap-3">
-              Dashboard <span className="text-slate-200 font-light">/</span> <span className="text-rose-600 text-sm xl:text-base italic uppercase tracking-widest font-black">Identity</span>
+            <h1 className="text-lg xl:text-xl font-[1000] text-slate-950 tracking-tighter flex items-center gap-2.5">
+              Dashboard <span className="text-slate-200 font-light">/</span> <span className="text-rose-600 text-xs xl:text-sm italic uppercase tracking-widest font-black">Identity</span>
             </h1>
           </div>
           
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-slate-950 flex items-center justify-center text-white text-[10px] font-black ring-2 ring-slate-100 ring-offset-2">
+          <div className="flex items-center gap-3 xl:gap-5">
+            <Link href="/dashboard/profile" className="w-8 h-8 rounded-full bg-slate-950 flex items-center justify-center text-white text-[9px] font-black ring-2 ring-slate-100 ring-offset-2">
               {authUser?.displayName?.substring(0, 2).toUpperCase() || "PT"}
-            </div>
+            </Link>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-6 xl:p-12 space-y-12">
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-12">
+        <div className="flex-1 overflow-y-auto p-6 xl:p-10 space-y-8">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
             
             {/* Profile Editing Section */}
-            <div className="xl:col-span-2 space-y-8">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 px-3 py-1 bg-rose-50 border border-rose-100 rounded-full w-fit">
-                  <ShieldCheck className="w-3 h-3 text-rose-600" />
-                  <span className="text-[9px] font-black text-rose-600 uppercase tracking-widest">Medical Standard Protocol</span>
+            <div className="xl:col-span-2 space-y-6">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 px-2.5 py-0.5 bg-rose-50 border border-rose-100 rounded-full w-fit">
+                  <ShieldCheck className="w-2.5 h-2.5 text-rose-600" />
+                  <span className="text-[8px] font-black text-rose-600 uppercase tracking-widest">Medical Standard Protocol</span>
                 </div>
-                <h2 className="text-4xl xl:text-5xl font-[1000] text-slate-950 tracking-tighter leading-tight italic uppercase decoration-rose-100 decoration-8 underline-offset-[-2px]">
+                <h2 className="text-3xl xl:text-4xl font-[1000] text-slate-950 tracking-tighter leading-tight italic uppercase decoration-rose-100 decoration-8 underline-offset-[-2px]">
                    Clinical <span className="text-rose-600 underline">Identity</span>.
                 </h2>
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest max-w-lg">Synchronize your biographic parameters across the secure healthcare network.</p>
+                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest max-w-lg">Synchronize your biographic parameters across the secure healthcare network.</p>
               </div>
 
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white border border-slate-200 rounded-[2.5rem] p-8 xl:p-12 shadow-2xl shadow-slate-200/40 relative overflow-hidden"
+                className="bg-white border border-slate-200 rounded-[2rem] p-6 xl:p-10 shadow-2xl shadow-slate-200/40 relative overflow-hidden"
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-rose-50/50 rounded-bl-[5rem] -mr-10 -mt-10" />
+                <div className="absolute top-0 right-0 w-24 h-24 bg-rose-50/50 rounded-bl-[4rem] -mr-8 -mt-8" />
                 
-                <form onSubmit={handleUpdate} className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-                  <div className="space-y-6">
+                <form onSubmit={handleUpdate} className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                  <div className="space-y-5">
                     {/* Name Field */}
-                    <div className="space-y-2">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Full Legal Name</p>
+                    <div className="space-y-1.5">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-3">Full Legal Name</p>
                       <div className="relative group">
-                        <User className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-rose-600 transition-colors" />
+                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-rose-600 transition-colors" />
                         <input
                           type="text"
-                          className="w-full pl-14 pr-6 py-4 rounded-3xl bg-slate-50 border-transparent focus:bg-white focus:border-rose-500 transition-all font-bold text-slate-900 placeholder:text-slate-300"
+                          className="w-full pl-12 pr-5 py-3 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:border-rose-500 transition-all font-bold text-slate-900 text-xs placeholder:text-slate-300"
                           value={formData.fullName}
                           onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                           placeholder="e.g. John Doe"
@@ -215,13 +245,13 @@ export default function ProfileSettings() {
                     </div>
 
                     {/* Phone Field */}
-                    <div className="space-y-2">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Emergency Contact</p>
+                    <div className="space-y-1.5">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-3">Emergency Contact</p>
                       <div className="relative group">
-                        <Activity className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-rose-600 transition-colors" />
+                        <Activity className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-rose-600 transition-colors" />
                         <input
                           type="text"
-                          className="w-full pl-14 pr-6 py-4 rounded-3xl bg-slate-50 border-transparent focus:bg-white focus:border-rose-500 transition-all font-bold text-slate-900 placeholder:text-slate-300"
+                          className="w-full pl-12 pr-5 py-3 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:border-rose-500 transition-all font-bold text-slate-900 text-xs placeholder:text-slate-300"
                           value={formData.phone}
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                           placeholder="+1 234 567 890"
@@ -230,15 +260,15 @@ export default function ProfileSettings() {
                     </div>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-5">
                     {/* Bio/Description */}
-                    <div className="space-y-2">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Medical Note / Bio</p>
+                    <div className="space-y-1.5">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-3">Medical Note / Bio</p>
                       <div className="relative group">
-                        <UserCircle className="absolute left-5 top-5 w-5 h-5 text-slate-300 group-focus-within:text-rose-600 transition-colors" />
+                        <UserCircle className="absolute left-4 top-4 w-4 h-4 text-slate-300 group-focus-within:text-rose-600 transition-colors" />
                         <textarea
                           rows={4}
-                          className="w-full pl-14 pr-6 py-4 rounded-3xl bg-slate-50 border-transparent focus:bg-white focus:border-rose-500 transition-all font-bold text-slate-900 placeholder:text-slate-300 resize-none"
+                          className="w-full pl-12 pr-5 py-3 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:border-rose-500 transition-all font-bold text-slate-900 text-xs placeholder:text-slate-300 resize-none"
                           value={formData.bio}
                           onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                           placeholder="Brief medical history or personal bio..."
@@ -247,7 +277,7 @@ export default function ProfileSettings() {
                     </div>
                   </div>
 
-                  <div className="md:col-span-2 space-y-8 pt-4">
+                  <div className="md:col-span-2 space-y-6 pt-2">
                     {message.text && (
                       <div className={`p-4 rounded-2xl text-[10px] font-black uppercase tracking-wide flex items-center gap-3 ${
                         message.type === 'success' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'
