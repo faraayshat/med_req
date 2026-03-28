@@ -56,9 +56,13 @@ const handleSubmit = async (e: React.FormEvent) => {
     setLoading(true);
 
     try {
+      const idToken = await authUser.getIdToken();
       const response = await fetch("/api/analyze", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${idToken}`
+        },
         body: JSON.stringify({
           userId: authUser.uid,
           formData,
@@ -88,6 +92,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           <button 
             onClick={() => router.push("/dashboard")}
             className="p-3 bg-slate-50 rounded-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all border border-transparent hover:border-rose-100"
+            suppressHydrationWarning
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -154,12 +159,12 @@ const handleSubmit = async (e: React.FormEvent) => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-xs font-semibold text-slate-600 ml-1">Current Age</label>
-                    <input type="number" name="age" value={formData.age} onChange={handleChange} className="hospital-input w-full p-4 border-slate-200 focus:border-rose-500 bg-slate-50/30" placeholder="Years" required />
+                    <input type="number" name="age" value={formData.age} onChange={handleChange} className="hospital-input w-full p-4 border-slate-200 focus:border-rose-500 bg-slate-50/30" placeholder="Years" required suppressHydrationWarning />
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-semibold text-slate-600 ml-1">Gender</label>
                     <div className="relative">
-                      <select name="gender" value={formData.gender} onChange={handleChange} className="hospital-input w-full p-4 appearance-none bg-slate-50/30 border-slate-200 focus:border-rose-500">
+                      <select name="gender" value={formData.gender} onChange={handleChange} className="hospital-input w-full p-4 appearance-none bg-slate-50/30 border-slate-200 focus:border-rose-500" suppressHydrationWarning>
                         <option value="male">Male</option>
                         <option value="female">Female</option>
                         <option value="other">Other</option>
@@ -179,11 +184,11 @@ const handleSubmit = async (e: React.FormEvent) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-xs font-semibold text-slate-600 ml-1">Height (CM)</label>
-                    <input type="number" name="height" value={formData.height} onChange={handleChange} className="hospital-input w-full p-4 border-slate-200 focus:border-rose-500 bg-slate-50/30" placeholder="e.g. 175" required />
+                    <input type="number" name="height" value={formData.height} onChange={handleChange} className="hospital-input w-full p-4 border-slate-200 focus:border-rose-500 bg-slate-50/30" placeholder="e.g. 175" required suppressHydrationWarning />
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-semibold text-slate-600 ml-1">Weight (KG)</label>
-                    <input type="number" name="weight" value={formData.weight} onChange={handleChange} className="hospital-input w-full p-4 border-slate-200 focus:border-rose-500 bg-slate-50/30" placeholder="e.g. 70" required />
+                    <input type="number" name="weight" value={formData.weight} onChange={handleChange} className="hospital-input w-full p-4 border-slate-200 focus:border-rose-500 bg-slate-50/30" placeholder="e.g. 70" required suppressHydrationWarning />
                   </div>
                 </div>
               </div>
@@ -197,11 +202,11 @@ const handleSubmit = async (e: React.FormEvent) => {
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-xs font-semibold text-slate-600 ml-1">Main Reason</label>
-                    <input type="text" name="reason" value={formData.reason} onChange={handleChange} className="hospital-input w-full p-4 border-slate-200 focus:border-rose-500 bg-slate-50/30 text-sm" placeholder="Why are you visiting today?" required />
+                    <input type="text" name="reason" value={formData.reason} onChange={handleChange} className="hospital-input w-full p-4 border-slate-200 focus:border-rose-500 bg-slate-50/30 text-sm" placeholder="Why are you visiting today?" required suppressHydrationWarning />
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-semibold text-slate-600 ml-1">Describe Symptoms</label>
-                    <textarea name="symptoms" value={formData.symptoms} onChange={handleChange} className="hospital-input w-full p-4 min-h-[100px] border-slate-200 focus:border-rose-500 bg-slate-50/30 text-sm leading-relaxed" placeholder="Please list any symptoms you're feeling..." required />
+                    <textarea name="symptoms" value={formData.symptoms} onChange={handleChange} className="hospital-input w-full p-4 min-h-[100px] border-slate-200 focus:border-rose-500 bg-slate-50/30 text-sm leading-relaxed" placeholder="Please list any symptoms you're feeling..." required suppressHydrationWarning />
                   </div>
                 </div>
               </div>
@@ -233,7 +238,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                       <p className="text-slate-500 text-[9px]">Your data is protected by industry standard encryption.</p>
                    </div>
                  </div>
-                 <button type="submit" disabled={loading} className="hospital-button-primary w-full sm:w-auto py-4 px-10 text-sm font-bold group shadow-md shadow-rose-200">
+                 <button type="submit" disabled={loading} className="hospital-button-primary w-full sm:w-auto py-4 px-10 text-sm font-bold group shadow-md shadow-rose-200" suppressHydrationWarning>
                    {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "Analyze Health Details"}
                  </button>
               </div>
