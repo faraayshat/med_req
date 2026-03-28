@@ -95,9 +95,9 @@ export default function Dashboard() {
         <nav className="flex-1 px-4 space-y-2 mt-4">
           {[
             { icon: LayoutDashboard, label: "Overview", active: true, href: "/dashboard" },
-            { icon: FileText, label: "Records", active: false, href: "/dashboard" },
-            { icon: Activity, label: "Vitals", active: false, href: "/dashboard" },
-            { icon: User, label: "Identity", active: false, href: "/dashboard/settings" },
+            { icon: FileText, label: "Records", active: false, href: "/dashboard/records" },
+            { icon: Activity, label: "Vitals", active: false, href: "/dashboard/vitals" },
+            { icon: User, label: "Identity", active: false, href: "/dashboard/profile" },
           ].map((item, idx) => (
             <Link key={idx} href={item.href} className={`w-full flex items-center justify-center xl:justify-start gap-4 p-3.5 rounded-2xl transition-all duration-300 group ${item.active ? 'bg-slate-950 text-white shadow-xl shadow-slate-200' : 'text-slate-400 hover:text-rose-600 hover:bg-rose-50/50'}`}>
               <item.icon className={`w-5 h-5 ${item.active ? 'text-rose-500' : ''}`} />

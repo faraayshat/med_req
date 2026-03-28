@@ -1,0 +1,337 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { auth, db } from "@/lib/firebase";
+import { doc, getDoc, updateDoc, collection, query, where, orderBy, getDocs, limit } from "firebase/firestore";
+import { updateProfile } from "firebase/auth";
+import { useRouter } from "next/navigation";
+import { 
+  User, 
+  Mail, 
+  ShieldCheck, 
+  ArrowLeft, 
+  Save, 
+  Activity,
+  Heart,
+  LayoutDashboard,
+  Bell,
+  Lock,
+  Loader2,
+  Clock,
+  History,
+  FileText,
+  ChevronRight,
+  UserCircle
+} from "lucide-react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { useAuth } from "@/components/providers/AuthProvider";
+
+export default function ProfileSettings() {
+  const { user: authUser, loading: authLoading } = useAuth();
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    bio: "",
+    phone: ""
+  });
+  const [history, setHistory] = useState<any[]>([]);
+  const [updating, setUpdating] = useState(false);
+  const [message, setMessage] = useState({ type: "", text: "" });
+  const router = useRouter();
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!authUser) {
+      router.push("/login");
+      return;
+    }
+
+    const fetchProfileData = async () => {
+      try {
+        // Fetch User Profile
+        const userDoc = await getDoc(doc(db, "users", authUser.uid));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          setFormData({
+            fullName: data.fullName || authUser.displayName || "",
+            email: authUser.email || "",
+            bio: data.bio || "",
+            phone: data.phone || ""
+          });
+        } else {
+          setFormData({
+            fullName: authUser.displayName || "",
+            email: authUser.email || "",
+            bio: "",
+            phone: ""
+          });
+        }
+
+        // Fetch History (Simplified: fetching recent reports as history)
+        const q = query(
+          collection(db, "reports"),
+          where("userId", "==", authUser.uid),
+          orderBy("createdAt", "desc"),
+          limit(5)
+        );
+        const querySnapshot = await getDocs(q);
+        setHistory(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+
+      } catch (err) {
+        console.error("Error fetching profile data:", err);
+      }
+    };
+
+    fetchProfileData();
+  }, [authUser, authLoading, router]);
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!authUser) return;
+
+    setUpdating(true);
+    setMessage({ type: "", text: "" });
+
+    try {
+      // 1. Update Firebase Auth Profile
+      await updateProfile(authUser, {
+        displayName: formData.fullName
+      });
+
+      // 2. Update Firestore User Document
+      await updateDoc(doc(db, "users", authUser.uid), {
+        fullName: formData.fullName,
+        bio: formData.bio,
+        phone: formData.phone,
+        updatedAt: new Date()
+      });
+
+      setMessage({ type: "success", text: "Identity parameters updated successfully." });
+    } catch (err: any) {
+      console.error("Update error:", err);
+      setMessage({ type: "error", text: err.message || "Failed to sync updates." });
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-12">
+        <div className="relative">
+          <Activity className="w-12 h-12 text-rose-500 animate-pulse" />
+          <div className="absolute inset-0 bg-rose-500/20 blur-xl rounded-full animate-pulse" />
+        </div>
+        <p className="mt-8 text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 animate-pulse">Accessing Secure Identity...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 selection:bg-rose-100 selection:text-rose-900 flex flex-col lg:flex-row antialiased">
+      {/* Precision Sidebar */}
+      <aside className="hidden lg:flex w-20 xl:w-72 bg-white border-r border-slate-200 flex-col sticky top-0 h-screen transition-all duration-500 ease-in-out group/sidebar">
+        <div className="p-6 xl:p-8 flex items-center gap-4">
+          <div className="bg-rose-600 p-2.5 rounded-xl shadow-lg shadow-rose-200 group-hover/sidebar:rotate-[10deg] transition-transform">
+            <Heart className="w-5 h-5 text-white fill-white/20" />
+          </div>
+          <span className="hidden xl:block text-base font-black text-slate-950 tracking-tighter uppercase italic">Health<span className="text-rose-600">Med</span></span>
+        </div>
+
+        <nav className="flex-1 px-4 space-y-2 mt-4">
+          {[
+            { icon: LayoutDashboard, label: "Overview", active: false, href: "/dashboard" },
+            { icon: FileText, label: "Records", active: false, href: "/dashboard/records" },
+            { icon: Activity, label: "Vitals", active: false, href: "/dashboard/vitals" },
+            { icon: User, label: "Identity", active: true, href: "/dashboard/profile" },
+          ].map((item, idx) => (
+            <Link key={idx} href={item.href} className={`w-full flex items-center justify-center xl:justify-start gap-4 p-3.5 rounded-2xl transition-all duration-300 group ${item.active ? 'bg-slate-950 text-white shadow-xl shadow-slate-200' : 'text-slate-400 hover:text-rose-600 hover:bg-rose-50/50'}`}>
+              <item.icon className={`w-5 h-5 ${item.active ? 'text-rose-500' : ''}`} />
+              <span className="hidden xl:block text-[10px] font-black uppercase tracking-widest">{item.label}</span>
+              {item.active && <div className="hidden xl:block ml-auto w-1.5 h-1.5 rounded-full bg-rose-500 shadow-sm shadow-rose-500" />}
+            </Link>
+          ))}
+        </nav>
+      </aside>
+
+      <main className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
+        <header className="h-20 bg-white/80 backdrop-blur-xl border-b border-slate-200 px-6 xl:px-12 flex items-center justify-between shrink-0 sticky top-0 z-50">
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard" className="p-2 hover:bg-slate-100 rounded-full transition-colors lg:hidden">
+              <ArrowLeft className="w-5 h-5 text-slate-950" />
+            </Link>
+            <h1 className="text-xl xl:text-2xl font-[1000] text-slate-950 tracking-tighter flex items-center gap-3">
+              Dashboard <span className="text-slate-200 font-light">/</span> <span className="text-rose-600 text-sm xl:text-base italic uppercase tracking-widest font-black">Identity</span>
+            </h1>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-slate-950 flex items-center justify-center text-white text-[10px] font-black ring-2 ring-slate-100 ring-offset-2">
+              {authUser?.displayName?.substring(0, 2).toUpperCase() || "PT"}
+            </div>
+          </div>
+        </header>
+
+        <div className="flex-1 overflow-y-auto p-6 xl:p-12 space-y-12">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-12">
+            
+            {/* Profile Editing Section */}
+            <div className="xl:col-span-2 space-y-8">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 px-3 py-1 bg-rose-50 border border-rose-100 rounded-full w-fit">
+                  <ShieldCheck className="w-3 h-3 text-rose-600" />
+                  <span className="text-[9px] font-black text-rose-600 uppercase tracking-widest">Medical Standard Protocol</span>
+                </div>
+                <h2 className="text-4xl xl:text-5xl font-[1000] text-slate-950 tracking-tighter leading-tight italic uppercase decoration-rose-100 decoration-8 underline-offset-[-2px]">
+                   Clinical <span className="text-rose-600 underline">Identity</span>.
+                </h2>
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest max-w-lg">Synchronize your biographic parameters across the secure healthcare network.</p>
+              </div>
+
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white border border-slate-200 rounded-[2.5rem] p-8 xl:p-12 shadow-2xl shadow-slate-200/40 relative overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-rose-50/50 rounded-bl-[5rem] -mr-10 -mt-10" />
+                
+                <form onSubmit={handleUpdate} className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                  <div className="space-y-6">
+                    {/* Name Field */}
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Full Legal Name</p>
+                      <div className="relative group">
+                        <User className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-rose-600 transition-colors" />
+                        <input
+                          type="text"
+                          className="w-full pl-14 pr-6 py-4 rounded-3xl bg-slate-50 border-transparent focus:bg-white focus:border-rose-500 transition-all font-bold text-slate-900 placeholder:text-slate-300"
+                          value={formData.fullName}
+                          onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                          placeholder="e.g. John Doe"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Phone Field */}
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Emergency Contact</p>
+                      <div className="relative group">
+                        <Activity className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-rose-600 transition-colors" />
+                        <input
+                          type="text"
+                          className="w-full pl-14 pr-6 py-4 rounded-3xl bg-slate-50 border-transparent focus:bg-white focus:border-rose-500 transition-all font-bold text-slate-900 placeholder:text-slate-300"
+                          value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          placeholder="+1 234 567 890"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* Bio/Description */}
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Medical Note / Bio</p>
+                      <div className="relative group">
+                        <UserCircle className="absolute left-5 top-5 w-5 h-5 text-slate-300 group-focus-within:text-rose-600 transition-colors" />
+                        <textarea
+                          rows={4}
+                          className="w-full pl-14 pr-6 py-4 rounded-3xl bg-slate-50 border-transparent focus:bg-white focus:border-rose-500 transition-all font-bold text-slate-900 placeholder:text-slate-300 resize-none"
+                          value={formData.bio}
+                          onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                          placeholder="Brief medical history or personal bio..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-2 space-y-8 pt-4">
+                    {message.text && (
+                      <div className={`p-4 rounded-2xl text-[10px] font-black uppercase tracking-wide flex items-center gap-3 ${
+                        message.type === 'success' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'
+                      }`}>
+                        {message.type === 'success' ? <ShieldCheck className="w-4 h-4" /> : <Activity className="w-4 h-4 animate-pulse" />}
+                        {message.text}
+                      </div>
+                    )}
+
+                    <button 
+                      type="submit" 
+                      disabled={updating}
+                      className="bg-rose-600 hover:bg-rose-700 text-white w-full py-5 rounded-3xl shadow-2xl shadow-rose-200 flex items-center justify-center gap-3 group active:scale-[0.98] transition-all disabled:opacity-50"
+                    >
+                      {updating ? (
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                      ) : (
+                        <>
+                          <Save className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                          <span className="text-xs font-black uppercase tracking-widest">Verify & Sync Updates</span>
+                        </>
+                      )}
+                    </button>
+                    
+                    <div className="pt-6 border-t border-slate-100 flex items-center gap-4 opacity-50">
+                       <Lock className="w-4 h-4 text-slate-400" />
+                       <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Your email ({formData.email}) is locked to this vault. Contact admin for recovery.</p>
+                    </div>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+
+            {/* History Section */}
+            <div className="space-y-8">
+              <div className="space-y-2">
+                <h3 className="text-2xl font-[1000] text-slate-950 tracking-tighter uppercase italic flex items-center gap-3">
+                  <History className="w-6 h-6 text-rose-600" /> History
+                </h3>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Recent interactions logged</p>
+              </div>
+
+              <div className="space-y-4">
+                {history.length === 0 ? (
+                  <div className="bg-white border border-slate-100 rounded-[2rem] p-8 text-center">
+                    <History className="w-8 h-8 text-slate-200 mx-auto mb-3" />
+                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">No previous logs</p>
+                  </div>
+                ) : (
+                  history.map((item) => (
+                    <Link 
+                      key={item.id} 
+                      href={`/results/${item.id}`}
+                      className="group block bg-white border border-slate-200 p-6 rounded-[2rem] hover:border-rose-200 hover:shadow-xl hover:shadow-rose-100 transition-all"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[8px] font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-100 uppercase">Verified</span>
+                        <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-300 uppercase">
+                          <Clock className="w-3 h-3" /> {new Date(item.createdAt?.seconds * 1000).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <p className="text-sm font-black text-slate-950 tracking-tight group-hover:text-rose-600 transition-colors">{item.reason || "General Assessment"}</p>
+                      <div className="mt-4 flex items-center justify-between">
+                         <span className="text-[9px] font-black text-slate-300 uppercase italic">ID: {item.id.slice(0, 8)}</span>
+                         <ChevronRight className="w-4 h-4 text-slate-200 group-hover:text-rose-500 transition-colors" />
+                      </div>
+                    </Link>
+                  ))
+                )}
+                
+                <div className="p-8 bg-slate-950 rounded-[2.5rem] text-white relative overflow-hidden group mt-12">
+                   <div className="absolute top-0 right-0 w-24 h-24 bg-rose-600/20 rounded-full blur-3xl group-hover:bg-rose-600/40 transition-all" />
+                   <h4 className="text-lg font-black tracking-tighter mb-2 italic">Vault <span className="text-rose-500">Analytics</span></h4>
+                   <p className="text-white/40 text-[9px] font-black uppercase tracking-widest mb-6">Aggregate health scores over time.</p>
+                   <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div className="w-2/3 h-full bg-rose-500 rounded-full" />
+                   </div>
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
