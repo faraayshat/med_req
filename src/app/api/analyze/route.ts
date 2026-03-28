@@ -133,6 +133,7 @@ export async function POST(request: Request) {
     // 3. Construct Finalized Medical Document
     const reportData = {
       ...formData,
+      name: formData.name || "Unknown Patient",
       userId: decodedToken.uid,
       bmi: bmiFixed,
       bmiStatus,

@@ -13,15 +13,101 @@ import {
   Loader2,
   Info,
   ArrowLeft,
+  Share2,
 } from "lucide-react";
 import Link from "next/link";
 import Sidebar from "@/components/dashboard/Sidebar";
+import jsPDF from "jspdf";
+import * as htmlToImage from 'html-to-image';
 
 export default function Results() {
   const { id } = useParams();
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
   const router = useRouter();
+
+  const downloadPDF = async () => {
+    const element = document.getElementById("report-content");
+    if (!element) return;
+    
+    setDownloading(true);
+    try {
+      // Optimized for 1-3MB file size: lower pixelRatio and focused compression
+      const dataUrl = await htmlToImage.toPng(element, {
+        quality: 0.8, // Reduced quality for better compression
+        backgroundColor: "#f8fafc",
+        style: { colorScheme: 'light' },
+        pixelRatio: 1.5 // Lower density to reduce raw image size while keeping it sharp
+      });
+      
+      const pdf = new jsPDF("p", "mm", "a4", true); // Enable internal PDF compression
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      
+      const img = new Image();
+      img.src = dataUrl;
+      await new Promise((resolve) => (img.onload = resolve));
+      
+      const pdfHeight = (img.height * pdfWidth) / img.width;
+      
+      // Using "FAST" compression alias for the image insertion
+      pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+      const fileName = `HealthReport-${(report.name || "Patient").replace(/\s+/g, "_")}.pdf`;
+      pdf.save(fileName);
+    } catch (err) {
+      console.error("PDF Generation Error:", err);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const shareReport = async () => {
+    const element = document.getElementById("report-content");
+    if (!element) return;
+
+    try {
+      // PDF Compression Optimization (Aiming for 1-3MB)
+      const dataUrl = await htmlToImage.toPng(element, {
+        quality: 0.8,
+        backgroundColor: "#f8fafc",
+        style: { colorScheme: 'light' },
+        pixelRatio: 1.5 // Balance between quality and file weight
+      });
+      
+      const pdf = new jsPDF("p", "mm", "a4", true); // true enables compression
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      
+      const img = new Image();
+      img.src = dataUrl;
+      await new Promise((resolve) => (img.onload = resolve));
+      const pdfHeight = (img.height * pdfWidth) / img.width;
+      
+      // 'FAST' compression alias for image integration
+      pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+      
+      const pdfBlob = pdf.output('blob');
+      const safeName = (report.name || "Patient").replace(/\s+/g, "_");
+      const filename = `HealthReport-${safeName}.pdf`;
+      const file = new File([pdfBlob], filename, { type: 'application/pdf' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Health Analysis Report',
+          text: `Medical assessment report (Ref: ${(id as string).slice(0, 8).toUpperCase()})`,
+        });
+      } else {
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error("Sharing failed", err);
+    }
+  };
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -85,26 +171,46 @@ export default function Results() {
           
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 px-3 py-1 bg-rose-50 rounded-full w-fit">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-                <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider">Assessment Complete</span>
+            <div className="space-y-4">
+              <Link 
+                href="/dashboard/records" 
+                className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-rose-600 transition-colors bg-white border border-slate-200 w-fit px-3 py-1.5 rounded-full"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" /> Back to Records
+              </Link>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 px-3 py-1 bg-rose-50 rounded-full w-fit">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                  <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider">Assessment Complete</span>
+                </div>
+                <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Health Analysis Report</h1>
+                <p className="text-slate-500 text-sm font-medium">Reference ID: <span className="text-slate-900 font-bold">{(id as string)?.slice(0, 8).toUpperCase()}</span> • {new Date(report.createdAt?.seconds * 1000).toLocaleDateString()}</p>
               </div>
-              <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Health Analysis Report</h1>
-              <p className="text-slate-500 text-sm font-medium">Reference ID: <span className="text-slate-900 font-bold">{(id as string)?.slice(0, 8).toUpperCase()}</span> • {new Date(report.createdAt?.seconds * 1000).toLocaleDateString()}</p>
             </div>
             <div className="flex items-center gap-3">
-              <button className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-slate-700 text-xs font-bold hover:bg-slate-50 transition-colors shadow-sm">
-                <Download className="w-4 h-4" />
-                Download PDF
+              <button 
+                onClick={downloadPDF}
+                disabled={downloading}
+                className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-slate-700 text-xs font-bold hover:bg-slate-50 transition-all shadow-sm disabled:opacity-50"
+              >
+                {downloading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4" />
+                )}
+                {downloading ? "Generating..." : "Download PDF"}
               </button>
-              <button className="flex items-center gap-2 px-6 py-3 bg-rose-500 text-white rounded-2xl text-xs font-bold hover:bg-rose-600 transition-colors shadow-lg shadow-rose-200">
-                Share with Doctor
+              <button 
+                onClick={shareReport}
+                className="flex items-center gap-2 px-6 py-3 bg-rose-500 text-white rounded-2xl text-xs font-bold hover:bg-rose-600 transition-all shadow-lg shadow-rose-200"
+              >
+                <Share2 className="w-4 h-4" />
+                Share Report
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div id="report-content" className="grid grid-cols-1 lg:grid-cols-12 gap-8 p-1">
             
             {/* Left Column: Stats & Vitals */}
             <div className="lg:col-span-4 space-y-6">
@@ -116,7 +222,7 @@ export default function Results() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">User Profile</p>
-                    <h3 className="text-lg font-bold text-slate-900 capitalize">{report.gender}, {report.age} Years</h3>
+                    <h3 className="text-lg font-bold text-slate-900 capitalize">{report.name || report.gender}, {report.age} Years</h3>
                   </div>
                 </div>
 
@@ -198,20 +304,59 @@ export default function Results() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   {(report.recommendations && Array.isArray(report.recommendations)) ? report.recommendations.map((rec: any, i: number) => {
                     const title = typeof rec === 'string' ? rec : (rec.title || "Recommendation");
                     const desc = typeof rec === 'object' ? rec.desc : "";
+                    const medication = typeof rec === 'object' ? rec.medication : null;
+                    const accuracy = typeof rec === 'object' ? rec.accuracy : null;
+                    const sourceUrl = typeof rec === 'object' ? rec.sourceUrl : null;
                     
                     return (
-                      <div key={i} className="group p-6 rounded-3xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/10 transition-all duration-300 flex flex-col gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs font-black shrink-0">
-                          {i + 1}
+                      <div key={i} className="group p-8 rounded-[2.5rem] border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/10 transition-all duration-300 flex flex-col gap-5 shadow-sm">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-black shrink-0 border border-emerald-100/50">
+                              {i + 1}
+                            </div>
+                            <div className="space-y-1">
+                              <h4 className="text-lg font-extrabold text-slate-900 tracking-tight">{title}</h4>
+                              <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-2xl">{desc}</p>
+                            </div>
+                          </div>
+                          {accuracy && (
+                            <div className="flex flex-col items-end gap-1">
+                              <div className="px-3 py-1 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-widest leading-none">
+                                {accuracy} Match
+                              </div>
+                              <p className="text-[8px] font-bold text-slate-400 tracking-tighter uppercase px-1">Confidence Score</p>
+                            </div>
+                          )}
                         </div>
-                        <div className="space-y-1">
-                          <p className="text-sm font-bold text-slate-900">{title}</p>
-                          {desc && <p className="text-xs text-slate-500 leading-relaxed">{desc}</p>}
-                        </div>
+
+                        {medication && (
+                          <div className="bg-white border-2 border-emerald-50 rounded-3xl p-6 flex items-start gap-4 shadow-sm group-hover:border-emerald-100 transition-colors">
+                            <div className="bg-emerald-500 p-2.5 rounded-xl text-white shadow-lg shadow-emerald-100 mt-0.5">
+                              <ShieldCheck className="w-4 h-4" />
+                            </div>
+                            <div className="space-y-1.5 flex-1">
+                              <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest leading-none">Diagnostic Lead & Therapeutics</p>
+                              <p className="text-sm font-bold text-slate-900 leading-snug">{medication}</p>
+                              <p className="text-[10px] text-slate-400 font-medium italic">Consult a licensed physician before consuming any medication.</p>
+                            </div>
+                            {sourceUrl && (
+                              <a 
+                                href={sourceUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2.5 bg-slate-50 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all"
+                                title="View Medical Source"
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                              </a>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   }) : (

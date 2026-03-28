@@ -43,16 +43,6 @@ export default function RecordsPage() {
   const clearNotifications = () => setNotifications([]);
   const removeNotification = (id: number) => setNotifications(notifications.filter(n => n.id !== id));
 
-  const handleLogout = async () => {
-    try {
-      await auth.signOut();
-      deleteCookie("session");
-      router.push("/login");
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
-
   useEffect(() => {
     if (authLoading) return;
     if (!authUser) {
@@ -80,6 +70,7 @@ export default function RecordsPage() {
   }, [authUser, authLoading, router]);
 
   const filteredReports = reports.filter(report => 
+    (report.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
     (report.reason || "General Assessment").toLowerCase().includes(searchTerm.toLowerCase()) ||
     report.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -296,7 +287,8 @@ export default function RecordsPage() {
                            <span className="px-1.5 py-0.5 bg-rose-50 text-rose-600 text-[7px] font-black uppercase tracking-widest rounded-md border border-rose-100">Verified</span>
                            <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">ID: {report.id}</span>
                         </div>
-                        <p className="text-lg xl:text-xl font-[1000] text-slate-950 tracking-tighter group-hover:text-rose-600 transition-colors uppercase italic">{report.reason || "General Assessment"}</p>
+                        <p className="text-lg xl:text-xl font-[1000] text-slate-950 tracking-tighter group-hover:text-rose-600 transition-colors uppercase italic">{report.name || report.reason || "General Assessment"}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{report.reason || "Health Assessment Prototype"}</p>
                         <div className="flex items-center gap-3 mt-2">
                            <span className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
                              <Clock className="w-3 h-3" /> {new Date(report.createdAt?.seconds * 1000).toLocaleDateString()}

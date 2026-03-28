@@ -73,12 +73,6 @@ export default function Dashboard() {
     fetchReports();
   }, [authUser, authLoading, router]);
 
-  const handleLogout = async () => {
-    await auth.signOut();
-    deleteCookie("__session");
-    router.push("/");
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-12">
