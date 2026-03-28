@@ -19,16 +19,28 @@ import {
   Thermometer,
   Clock,
   ChevronRight,
-  LogOut
+  LogOut,
+  Bell,
+  CheckCircle2,
+  AlertCircle,
+  Plus
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { deleteCookie } from "cookies-next";
 
 export default function VitalsPage() {
   const { user: authUser, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([
+    { id: 1, type: 'success', title: 'Health Analysis Complete', desc: 'Your latest biometric sync shows optimal heart rate stability.', time: '2 mins ago', icon: CheckCircle2, color: 'bg-emerald-100', iconColor: 'text-emerald-600' },
+    { id: 2, type: 'alert', title: 'Prescription Reminder', desc: 'Evening dosage for Vitamin D3 is due in 15 minutes.', time: '1 hour ago', icon: AlertCircle, color: 'bg-rose-100', iconColor: 'text-rose-600' }
+  ]);
   const router = useRouter();
+
+  const clearNotifications = () => setNotifications([]);
+  const removeNotification = (id: number) => setNotifications(notifications.filter(n => n.id !== id));
 
   const handleLogout = async () => {
     try {
@@ -123,6 +135,74 @@ export default function VitalsPage() {
           </div>
 
           <div className="flex items-center gap-3 xl:gap-5">
+            <div className="relative">
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className={`relative p-2 rounded-full border transition-all ${showNotifications ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-white border-slate-200 text-slate-400 hover:border-rose-100 hover:bg-rose-50 hover:text-rose-600'}`}
+              >
+                <Bell className="w-4 h-4" />
+                {notifications.length > 0 && <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-rose-600 rounded-full border border-white shadow-sm" />}
+              </button>
+
+              <AnimatePresence>
+                {showNotifications && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 mt-3 w-80 bg-white rounded-[2rem] shadow-2xl shadow-slate-200 border border-slate-100 overflow-hidden z-50"
+                    >
+                      <div className="p-5 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-950">Notifications</h3>
+                          {notifications.length > 0 && <span className="px-2 py-0.5 bg-rose-100 text-rose-600 text-[8px] font-black rounded-full uppercase">{notifications.length} New</span>}
+                        </div>
+                        {notifications.length > 0 && (
+                          <button onClick={clearNotifications} className="text-[8px] font-black text-slate-400 uppercase tracking-widest hover:text-rose-600 transition-colors">Clear All</button>
+                        )}
+                      </div>
+                      
+                      <div className="max-h-[350px] overflow-y-auto">
+                        {notifications.length > 0 ? (
+                          notifications.map((n) => (
+                            <div key={n.id} className="p-5 flex gap-4 hover:bg-slate-50 transition-colors cursor-pointer group border-b border-slate-50 relative">
+                              <div className={`${n.color} p-2 rounded-xl h-fit`}>
+                                <n.icon className={`w-4 h-4 ${n.iconColor}`} />
+                              </div>
+                              <div className="flex-1 pr-4">
+                                <p className="text-[10px] font-bold text-slate-950 leading-tight mb-1">{n.title}</p>
+                                <p className="text-[9px] text-slate-500 font-medium leading-relaxed">{n.desc}</p>
+                                <p className="text-[8px] text-slate-400 font-black uppercase mt-2 tracking-tighter">{n.time}</p>
+                              </div>
+                              <button onClick={() => removeNotification(n.id)} className="absolute right-4 top-5 opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-200 rounded-lg transition-all">
+                                <Plus className="w-3 h-3 text-slate-400 rotate-45" />
+                              </button>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="p-10 text-center space-y-3">
+                            <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto border border-slate-100">
+                               <Bell className="w-5 h-5 text-slate-300" />
+                            </div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">No Alerts</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <Link 
+                        href="/dashboard/alerts"
+                        className="w-full p-4 text-[9px] font-black text-slate-400 text-center uppercase tracking-widest hover:text-rose-600 hover:bg-rose-50 transition-all border-t border-slate-50 block"
+                      >
+                        View All Alerts
+                      </Link>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
+
             <Link href="/dashboard/profile" className="w-8 h-8 rounded-full bg-slate-950 flex items-center justify-center text-white text-[9px] font-black ring-2 ring-slate-100 ring-offset-2">
               {authUser?.displayName?.substring(0, 2).toUpperCase() || "PT"}
             </Link>
