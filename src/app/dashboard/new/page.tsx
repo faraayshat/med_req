@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { auth, db, storage } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { auth, storage } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import { 
@@ -17,14 +16,15 @@ import {
   ShieldCheck, 
   Heart,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  Zap,
+  ChevronDown
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const STEPS = ["Patient Profile", "Vital Statistics", "Clinical Rationale", "Documentation"];
+const STEPS = ["Unified Clinical Assessment"];
 
 export default function NewReport() {
-  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -59,16 +59,22 @@ export default function NewReport() {
         fileUrl = await getDownloadURL(fileRef);
       }
 
-      const docRef = await addDoc(collection(db, "reports"), {
-        ...formData,
-        userId: auth.currentUser.uid,
-        fileUrl,
-        createdAt: serverTimestamp(),
-        status: "analyzed",
-        recommendations: generateMockRecommendations(formData),
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: auth.currentUser.uid,
+          formData,
+          fileUrl,
+        }),
       });
 
-      router.push(`/results/${docRef.id}`);
+      if (!response.ok) {
+        throw new Error("Clinical transmission failed.");
+      }
+
+      const result = await response.json();
+      router.push(`/results/${result.id}`);
     } catch (error) {
       console.error("Submission failed:", error);
       alert("Portal failure: Transmission interrupted.");
@@ -76,9 +82,6 @@ export default function NewReport() {
       setLoading(false);
     }
   };
-
-  const nextStep = () => setStep((s) => Math.min(s + 1, 4));
-  const prevStep = () => setStep((s) => Math.max(s - 1, 1));
 
   return (
     <div className="min-h-screen bg-rose-50/20 flex flex-col">
@@ -102,170 +105,152 @@ export default function NewReport() {
         </div>
       </nav>
 
-      <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-16">
-        {/* Mobile Progress Bar */}
-        <div className="w-full max-w-lg mb-8 lg:hidden">
-          <div className="flex justify-between mb-2">
-            <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest">{STEPS[step-1]}</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Step {step} of 4</span>
-          </div>
-          <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-            <div className="h-full bg-rose-600 transition-all duration-500" style={{ width: `${(step / 4) * 100}%` }} />
-          </div>
-        </div>
-
-        <div className="w-full max-w-4xl flex flex-col lg:flex-row gap-8 lg:gap-16">
+      <div className="flex-1 w-full flex flex-col items-center p-6 lg:p-12 overflow-y-auto">
+        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
           
-          {/* Progress Tracker (Sidebar) */}
-          <div className="hidden lg:block w-70 space-y-12">
-            <div className="bg-slate-950 rounded-[3rem] p-10 space-y-10 relative overflow-hidden">
-               <div className="absolute top-0 right-0 w-20 h-20 bg-rose-500/10 blur-3xl rounded-full" />
-               <h3 className="text-white text-xs font-black uppercase tracking-[0.3em]">Protocol Progress</h3>
-               <div className="space-y-8 relative z-10">
-                 {STEPS.map((s, idx) => (
-                   <div key={idx} className="flex items-center gap-6 group">
-                     <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-[10px] font-black transition-all duration-500 ${step > idx + 1 ? 'bg-emerald-500 text-white' : step === idx + 1 ? 'bg-rose-600 text-white ring-8 ring-rose-600/20 shadow-xl shadow-rose-600/30' : 'bg-white/5 text-slate-500'}`}>
-                       {step > idx + 1 ? <CheckCircle2 className="w-4 h-4" /> : idx + 1}
-                     </div>
-                     <span className={`text-[10px] font-black uppercase tracking-widest transition-colors ${step >= idx + 1 ? 'text-white' : 'text-slate-600'}`}>{s}</span>
-                   </div>
-                 ))}
+          {/* Progress Tracker (Sidebar) - Simplified */}
+          <div className="lg:col-span-4 space-y-8 sticky top-0 h-fit">
+            <div className="bg-slate-950 rounded-[2.5rem] p-8 space-y-8 relative overflow-hidden shadow-2xl shadow-slate-200">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/10 blur-[60px] rounded-full" />
+               <div className="space-y-2 relative z-10">
+                 <h3 className="text-white text-[10px] font-black uppercase tracking-[0.3em] opacity-50">Protocol Status</h3>
+                 <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-sm font-black text-white uppercase tracking-wider italic">Awaiting Transmission</span>
+                 </div>
+               </div>
+               
+               <div className="space-y-4 relative z-10 border-t border-white/10 pt-6">
+                  <div className="flex gap-4">
+                    <div className="bg-white/5 p-2 rounded-lg"><Activity className="w-4 h-4 text-rose-500" /></div>
+                    <p className="text-slate-400 text-[11px] font-medium leading-relaxed">Ensure all vitals (Height/Weight) are from recent clinical recordings for precision.</p>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="bg-white/5 p-2 rounded-lg"><ShieldCheck className="w-4 h-4 text-emerald-500" /></div>
+                    <p className="text-slate-400 text-[11px] font-medium leading-relaxed">Your data is processed in a HIPAA-compliant environment with AES-256 logic.</p>
+                  </div>
                </div>
             </div>
 
-            <div className="hospital-card p-10 bg-white border-rose-100 border-2 space-y-4">
+            <div className="bg-white border-slate-100 border p-8 rounded-[2.5rem] space-y-4 shadow-sm">
               <div className="bg-rose-50 w-fit p-3 rounded-2xl"><Dna className="w-6 h-6 text-rose-600" /></div>
-              <p className="text-xs font-black text-slate-950 uppercase tracking-widest italic">Physician Note.</p>
-              <p className="text-slate-400 text-xs font-bold leading-relaxed">Ensure all vitals are recorded within the past 24 hours for maximum diagnostic precision.</p>
+              <h4 className="text-xs font-black text-slate-950 uppercase tracking-widest italic">Clinical Logic.</h4>
+              <p className="text-slate-500 text-[11px] font-bold leading-relaxed">This ingestion portal synchronizes your physiological telemetry directly with our physician network.</p>
             </div>
           </div>
 
           {/* Form Content */}
-          <div className="flex-1">
-            <AnimatePresence mode="wait">
-              <motion.form
-                key={step}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                onSubmit={handleSubmit}
-                className="hospital-card p-10 lg:p-16 bg-white border-2 border-slate-50 shadow-[40px_40px_80px_-40px_rgba(225,29,72,0.1)] relative"
-              >
-                {step === 1 && (
-                  <div className="space-y-10">
-                    <div className="space-y-2 text-center lg:text-left">
-                       <p className="text-rose-600 font-black text-xs tracking-widest uppercase">Initial Assessment</p>
-                       <h2 className="text-4xl lg:text-5xl font-[1000] text-slate-950 tracking-tighter">Patient Profile.</h2>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                      <div className="space-y-4">
-                        <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Current Age</label>
-                        <input type="number" name="age" value={formData.age} onChange={handleChange} className="hospital-input w-full p-6 text-sm lg:text-lg" placeholder="Years" required />
-                      </div>
-                      <div className="space-y-4">
-                        <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Biological Identity</label>
-                        <select name="gender" value={formData.gender} onChange={handleChange} className="hospital-input w-full p-6 text-sm lg:text-lg appearance-none bg-white">
-                          <option value="male">Male Spectrum</option>
-                          <option value="female">Female Spectrum</option>
-                          <option value="other">Other / Precise</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {step === 2 && (
-                  <div className="space-y-10">
-                    <div className="space-y-2">
-                       <p className="text-rose-600 font-black text-[10px] tracking-widest uppercase">Metric Identification</p>
-                       <h2 className="text-5xl font-[1000] text-slate-950 tracking-tighter">Vital Statistics.</h2>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="space-y-4">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Height (CM)</label>
-                        <input type="number" name="height" value={formData.height} onChange={handleChange} className="hospital-input w-full p-6" placeholder="E.g. 175" required />
-                      </div>
-                      <div className="space-y-4">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Weight (KG)</label>
-                        <input type="number" name="weight" value={formData.weight} onChange={handleChange} className="hospital-input w-full p-6" placeholder="E.g. 70" required />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {step === 3 && (
-                  <div className="space-y-10">
-                    <div className="space-y-2">
-                       <p className="text-rose-600 font-black text-[10px] tracking-widest uppercase">Anomaly Report</p>
-                       <h2 className="text-5xl font-[1000] text-slate-950 tracking-tighter">Clinical Rationale.</h2>
-                    </div>
-                    <div className="space-y-8">
-                      <div className="space-y-4">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Primary Rationale</label>
-                        <input type="text" name="reason" value={formData.reason} onChange={handleChange} className="hospital-input w-full p-6" placeholder="Reason for consultation" required />
-                      </div>
-                      <div className="space-y-4">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Detailed Symptom Log</label>
-                        <textarea name="symptoms" value={formData.symptoms} onChange={handleChange} className="hospital-input w-full p-6 min-h-[200px]" placeholder="Describe conditions precisely..." required />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {step === 4 && (
-                  <div className="space-y-10">
-                    <div className="space-y-2">
-                       <p className="text-rose-600 font-black text-[10px] tracking-widest uppercase">Supporting Artifacts</p>
-                       <h2 className="text-5xl font-[1000] text-slate-950 tracking-tighter">Documentation.</h2>
-                    </div>
-                    <div className="space-y-8">
-                      <div className="border-4 border-dashed border-rose-50 bg-rose-50/20 rounded-[2.5rem] p-12 lg:p-24 text-center group hover:border-rose-100 transition-all cursor-pointer relative overflow-hidden">
-                        <input type="file" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer z-20" aria-label="Upload medical documentation" />
-                        <div className="space-y-6 relative z-10 flex flex-col items-center">
-                          <div className="bg-rose-600 p-8 rounded-[2rem] text-white shadow-xl shadow-rose-600/30 group-hover:scale-110 transition-transform"><Upload className="w-12 h-12" /></div>
-                          <div className="space-y-2">
-                            <p className="text-xl lg:text-2xl font-black text-slate-950 tracking-tight">{file ? file.name : "Secure Upload Portal"}</p>
-                            <p className="text-xs font-black text-slate-500 uppercase tracking-widest">HL7 / DICOM / PDF Verified</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="bg-slate-950 rounded-3xl p-8 flex items-center justify-between">
-                         <div className="flex items-center gap-4">
-                           <ShieldCheck className="w-8 h-8 text-emerald-500" />
-                           <div className="space-y-1">
-                              <p className="text-white text-[10px] font-black uppercase tracking-widest">Privacy Protocol</p>
-                              <p className="text-slate-500 text-[10px] font-bold">End-to-End Encrypted Storage</p>
-                           </div>
-                         </div>
-                         <button type="submit" disabled={loading} className="hospital-button-primary py-5 px-10 text-lg group">
-                           {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Transmit to Physician"}
-                         </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="mt-16 flex justify-between items-center bg-slate-50 -mx-10 -mb-10 lg:-mx-16 lg:-mb-16 p-8 lg:p-10 rounded-b-[3rem]">
-                   <button 
-                    type="button" 
-                    onClick={prevStep} 
-                    className={`flex items-center gap-2 font-black text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-950 transition-colors ${step === 1 ? 'opacity-0 invisible' : ''}`}
-                   >
-                     <ChevronLeft className="w-4 h-4" /> Previous Phase
-                   </button>
-                   {step < 4 && (
-                     <button 
-                      type="button" 
-                      onClick={nextStep} 
-                      className="bg-slate-950 text-white font-black text-[10px] uppercase tracking-[0.2em] px-8 py-4 rounded-full hover:bg-rose-600 transition-all flex items-center gap-3 group"
-                     >
-                       Next Parameter <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                     </button>
-                   )}
+          <div className="lg:col-span-8">
+            <motion.form
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              onSubmit={handleSubmit}
+              className="bg-white border border-slate-100 rounded-[3rem] p-8 lg:p-12 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.05)] relative space-y-12"
+            >
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 px-3 py-1 bg-rose-50 rounded-full w-fit">
+                  <Zap className="w-3 h-3 text-rose-600" />
+                  <span className="text-[9px] font-black text-rose-600 uppercase tracking-[0.2em]">Live Clinical Ingestion</span>
                 </div>
-              </motion.form>
-            </AnimatePresence>
+                <h2 className="text-4xl lg:text-5xl font-[1000] text-slate-950 tracking-tighter italic uppercase">Unified <span className="text-rose-600">Assessment</span>.</h2>
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest leading-relaxed">Synchronize your biographic parameters into the healthcare stream.</p>
+              </div>
+
+              {/* Step 1: Patient Profile */}
+              <div className="space-y-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-slate-950 text-white flex items-center justify-center text-xs font-black">01</div>
+                  <h3 className="text-xs font-black text-slate-950 uppercase tracking-[0.3em]">Patient Demographic</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8">
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Current Age</label>
+                    <input type="number" name="age" value={formData.age} onChange={handleChange} className="hospital-input w-full p-5 text-sm lg:text-base" placeholder="E.g. 28" required />
+                  </div>
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Biological Identity</label>
+                    <div className="relative group">
+                      <select name="gender" value={formData.gender} onChange={handleChange} className="hospital-input w-full p-5 text-sm lg:text-base appearance-none bg-white">
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </select>
+                      <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-hover:text-rose-600 transition-colors pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 2: Vital Statistics */}
+              <div className="space-y-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-black">02</div>
+                  <h3 className="text-xs font-black text-slate-950 uppercase tracking-[0.3em]">Vital Metrics</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+                  <div className="space-y-4 text-rose-600">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Stature (CM)</label>
+                    <input type="number" name="height" value={formData.height} onChange={handleChange} className="hospital-input w-full p-5 border-rose-100 focus:border-rose-400" placeholder="E.g. 175" required />
+                  </div>
+                  <div className="space-y-4 text-rose-600">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Body Mass (KG)</label>
+                    <input type="number" name="weight" value={formData.weight} onChange={handleChange} className="hospital-input w-full p-5 border-rose-100 focus:border-rose-400" placeholder="E.g. 70" required />
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 3: Clinical Rationale */}
+              <div className="space-y-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-black">03</div>
+                  <h3 className="text-xs font-black text-slate-950 uppercase tracking-[0.3em]">Anomaly Rationale</h3>
+                </div>
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Primary Consultation Reason</label>
+                    <input type="text" name="reason" value={formData.reason} onChange={handleChange} className="hospital-input w-full p-5 text-sm" placeholder="Summarize your visit rationale" required />
+                  </div>
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Precise Symptom Manifestation</label>
+                    <textarea name="symptoms" value={formData.symptoms} onChange={handleChange} className="hospital-input w-full p-5 min-h-[120px] text-sm leading-relaxed" placeholder="Logging specific condition metadata..." required />
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 4: Documentation (Optional) */}
+              <div className="space-y-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-black">04</div>
+                  <h3 className="text-xs font-black text-slate-950 uppercase tracking-[0.3em]">Clinical Artifacts <span className="text-slate-400 font-medium lowercase italic">(Optional)</span></h3>
+                </div>
+                <div className="border-4 border-dashed border-rose-50 bg-rose-50/10 rounded-[2.5rem] p-10 text-center group hover:border-rose-200 hover:bg-rose-50/20 transition-all cursor-pointer relative overflow-hidden">
+                  <input type="file" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer z-20" aria-label="Upload documentation" />
+                  <div className="space-y-6 relative z-10 flex flex-col items-center">
+                    <div className={`p-6 rounded-[1.5rem] text-white shadow-xl transition-all group-hover:scale-110 ${file ? 'bg-emerald-500 shadow-emerald-500/20' : 'bg-rose-600 shadow-rose-600/20'}`}>
+                      {file ? <CheckCircle2 className="w-8 h-8" /> : <Upload className="w-8 h-8" />}
+                    </div>
+                    <div>
+                      <p className="text-lg font-[1000] text-slate-950 tracking-tight">{file ? file.name : "Secure Artifact Uplink"}</p>
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">{file ? "Medical Artifact Quantized" : "PDF / DICOM / HL7 Compatible"}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-slate-950 rounded-[2.5rem] p-10 flex flex-col sm:flex-row items-center justify-between gap-8 group/footer overflow-hidden relative">
+                 <div className="absolute top-0 right-0 w-48 h-48 bg-rose-600/10 blur-[80px] group-hover/footer:bg-rose-600/20 transition-all duration-700" />
+                 <div className="flex items-center gap-5 relative z-10">
+                   <div className="bg-white/10 p-3 rounded-2xl backdrop-blur-md"><ShieldCheck className="w-6 h-6 text-emerald-500" /></div>
+                   <div className="space-y-1">
+                      <p className="text-white text-[10px] font-[1000] uppercase tracking-[0.2em]">Privacy Protocol Active</p>
+                      <p className="text-white/30 text-[9px] font-bold">End-to-End Cryptography Standard</p>
+                   </div>
+                 </div>
+                 <button type="submit" disabled={loading} className="hospital-button-primary w-full sm:w-auto py-5 px-12 text-sm uppercase tracking-[0.2em] font-black group/btn relative z-10 overflow-hidden">
+                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : file ? "Synchronize with Artifacts" : "Analyze Bio-Streams"}
+                 </button>
+              </div>
+            </motion.form>
           </div>
         </div>
       </div>
@@ -273,19 +258,3 @@ export default function NewReport() {
   );
 }
 
-function generateMockRecommendations(data: any) {
-  const height = parseFloat(data.height) / 100;
-  const weight = parseFloat(data.weight);
-  const bmi = weight / (height * height);
-
-  const recs = [
-    { title: "Metabolic Status", desc: `Current BMI calculated at ${bmi.toFixed(1)}. Tracking within expected variance for ${data.age}YO demographic.` },
-    { title: "Clinical Intake", desc: `Received rationale: "${data.reason}". Physician review scheduled for baseline analysis.` }
-  ];
-
-  if (bmi > 25) {
-    recs.push({ title: "Nutritional Advisory", desc: "Longitudinal tracking suggests caloric optimization. Targeted macronutrient balance recommended." });
-  }
-
-  return recs;
-}
