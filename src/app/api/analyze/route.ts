@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { userId, formData, fileUrl } = body;
+    const { userId, formData } = body;
 
     if (!userId || !formData) {
       return NextResponse.json({ error: "Missing required clinical data" }, { status: 400 });
@@ -74,7 +74,6 @@ export async function POST(request: Request) {
     const reportData = {
       ...formData,
       userId,
-      fileUrl: fileUrl || "",
       bmi: bmiFixed,
       bmiStatus,
       recommendations,

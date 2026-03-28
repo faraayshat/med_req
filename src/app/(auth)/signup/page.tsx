@@ -133,6 +133,7 @@ export default function Signup() {
                     value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                     required
+                    suppressHydrationWarning
                   />
                 </div>
               </div>
@@ -148,6 +149,7 @@ export default function Signup() {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     required
+                    suppressHydrationWarning
                   />
                 </div>
               </div>
@@ -163,6 +165,7 @@ export default function Signup() {
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     required
+                    suppressHydrationWarning
                   />
                 </div>
               </div>
@@ -178,6 +181,7 @@ export default function Signup() {
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     required
+                    suppressHydrationWarning
                   />
                 </div>
               </div>
@@ -193,6 +197,7 @@ export default function Signup() {
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                     required
+                    suppressHydrationWarning
                   />
                 </div>
               </div>
@@ -208,6 +213,7 @@ export default function Signup() {
                     value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     required
+                    suppressHydrationWarning
                   />
                 </div>
               </div>
@@ -219,7 +225,10 @@ export default function Signup() {
                 </div>
               )}
 
-              <button type="submit" className="sm:col-span-2 hospital-button-primary py-4 text-lg mt-2 group rounded-full shadow-2xl shadow-rose-200 hover:shadow-rose-400/40">
+              <button type="submit" 
+                className="sm:col-span-2 hospital-button-primary py-4 text-lg mt-2 group rounded-full shadow-2xl shadow-rose-200 hover:shadow-rose-400/40"
+                suppressHydrationWarning
+              >
                 Register Profile
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-500" />
               </button>
@@ -235,6 +244,7 @@ export default function Signup() {
                 onClick={handleGoogleSignup} 
                 className="flex items-center justify-center py-3 border-2 border-slate-100 rounded-full hover:bg-slate-50 hover:border-slate-200 transition-all group"
                 title="Sync with Google"
+                suppressHydrationWarning
               >
                 <svg className="w-4 h-4 transition-transform group-hover:scale-110" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -246,6 +256,7 @@ export default function Signup() {
               <button 
                 className="flex items-center justify-center py-3 border-2 border-slate-100 rounded-full hover:bg-slate-50 hover:border-slate-200 transition-all group opacity-50 cursor-not-allowed"
                 title="Apple ID Sync coming soon"
+                suppressHydrationWarning
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.11.78.9-.04 2.02-.82 3.39-.7 1.25.07 2.51.62 3.19 1.63-2.67 1.55-2.04 5.09.68 6.22-.54 1.34-1.28 2.68-2.37 3.04zM12.03 7.25c-.09-2.22 1.74-4.14 4.01-4.24.23 2.22-1.95 4.31-4.01 4.24z"/>

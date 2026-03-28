@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { auth, storage } from "@/lib/firebase";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { 
   ArrowLeft, 
@@ -48,7 +47,7 @@ export default function NewReport() {
     if (e.target.files?.[0]) setFile(e.target.files[0]);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!authUser) {
       alert("Authentication required for transmission.");
@@ -57,20 +56,12 @@ export default function NewReport() {
     setLoading(true);
 
     try {
-      let fileUrl = "";
-      if (file) {
-        const fileRef = ref(storage, `medical-files/${authUser.uid}/${Date.now()}_${file.name}`);
-        await uploadBytes(fileRef, file);
-        fileUrl = await getDownloadURL(fileRef);
-      }
-
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: authUser.uid,
           formData,
-          fileUrl,
         }),
       });
 
@@ -215,21 +206,20 @@ export default function NewReport() {
                 </div>
               </div>
 
-              {/* Upload */}
-              <div className="space-y-6">
+              {/* Upload - Disabled for Free Tier (No Storage) */}
+              <div className="space-y-6 opacity-60">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-xs font-bold">4</div>
-                  <h3 className="text-sm font-bold text-slate-800">Past Records or Prescription <span className="text-slate-400 font-normal ml-1">(Optional)</span></h3>
+                  <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center text-xs font-bold">4</div>
+                  <h3 className="text-sm font-bold text-slate-800">Past Records or Prescription <span className="text-slate-400 font-normal ml-1">(Unavailable on Free Tier)</span></h3>
                 </div>
-                <div className="border-2 border-dashed border-slate-200 bg-slate-50/50 rounded-3xl p-8 text-center group hover:border-rose-300 hover:bg-rose-50/20 transition-all cursor-pointer relative overflow-hidden">
-                  <input type="file" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer z-20" />
+                <div className="border-2 border-dashed border-slate-200 bg-slate-50/50 rounded-3xl p-8 text-center cursor-not-allowed relative overflow-hidden">
                   <div className="space-y-4 relative z-10 flex flex-col items-center">
-                    <div className={`p-5 rounded-2xl transition-all ${file ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-500 group-hover:bg-rose-100 group-hover:text-rose-600'}`}>
-                      {file ? <CheckCircle2 className="w-6 h-6" /> : <Upload className="w-6 h-6" />}
+                    <div className="p-5 rounded-2xl bg-slate-200 text-slate-500">
+                      <ShieldCheck className="w-6 h-6" />
                     </div>
                     <div className="space-y-1">
-                      <p className="text-base font-bold text-slate-800">{file ? file.name : "Upload your medical files"}</p>
-                      <p className="text-xs text-slate-500">{file ? "File selected" : "Click to upload your past prescriptions or reports"}</p>
+                      <p className="text-base font-bold text-slate-800 italic">File Uploading Disabled</p>
+                      <p className="text-xs text-slate-500 italic">Connect a Storage Bucket to enable this feature</p>
                     </div>
                   </div>
                 </div>
@@ -244,7 +234,7 @@ export default function NewReport() {
                    </div>
                  </div>
                  <button type="submit" disabled={loading} className="hospital-button-primary w-full sm:w-auto py-4 px-10 text-sm font-bold group shadow-md shadow-rose-200">
-                   {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : file ? "Submit with Records" : "Analyze Health Details"}
+                   {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "Analyze Health Details"}
                  </button>
               </div>
             </motion.form>

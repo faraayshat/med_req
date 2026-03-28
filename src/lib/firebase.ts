@@ -1,7 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, User } from "firebase/auth";
+import { getFirestore, doc, setDoc, getDoc, collection, updateDoc, deleteDoc, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+// import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -17,7 +17,51 @@ const firebaseConfig = {
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
+// const storage = getStorage(app);
 const googleProvider = new GoogleAuthProvider();
 
-export { auth, db, storage, googleProvider };
+// User profile helper functions
+export const createUserProfile = async (user: User) => {
+  if (!user) return;
+  const userRef = doc(db, "users", user.uid);
+  const snapshot = await getDoc(userRef);
+
+  if (!snapshot.exists()) {
+    const { email, displayName, photoURL } = user;
+    const createdAt = new Date();
+    try {
+      await setDoc(userRef, {
+        displayName,
+        email,
+        photoURL,
+        createdAt,
+        role: "patient", // default role
+      });
+    } catch (error) {
+      console.error("Error creating user profile", error);
+    }
+  }
+};
+
+// Database Query Helpers
+export const getUserReports = async (userId: string) => {
+  if (!userId) return [];
+  const reportsRef = collection(db, "reports");
+  const q = query(reportsRef, where("userId", "==", userId));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+};
+
+export const createReport = async (userId: string, data: any) => {
+  const reportsRef = collection(db, "reports");
+  return await addDoc(reportsRef, {
+    ...data,
+    userId,
+    createdAt: serverTimestamp(),
+  });
+};
+
+export { auth, db, googleProvider };
