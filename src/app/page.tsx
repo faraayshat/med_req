@@ -85,7 +85,7 @@ export default function Home() {
           {/* Vitals Ribbon */}
           <div id="vitals" className="pt-12 grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
              {[
-               { label: "Precision", value: "99.9%", sub: "Verified" },
+               { label: "Precision", value: "70%", sub: "Verified" },
                { label: "Latency", value: "<1ms", sub: "Instant" },
                { label: "Security", value: "AES-256", sub: "Standard" },
                { label: "Uptime", value: "99.9%", sub: "Active" }

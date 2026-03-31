@@ -229,14 +229,25 @@ export default function Dashboard() {
           <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div className="bg-slate-950 p-6 xl:p-8 rounded-[2rem] text-white relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-rose-600/20 rounded-full blur-[60px] group-hover:bg-rose-600/30 transition-all duration-700" />
-              <div className="relative z-10 flex flex-col h-full justify-between gap-8 xl:gap-12">
+              <div className="relative z-10 flex flex-col h-full justify-between gap-4">
                 <div className="flex items-center justify-between">
                   <div className="bg-white/10 p-2.5 rounded-xl"><TrendingUp className="w-5 h-5 text-rose-500" /></div>
-                  <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.3em]">Update: Just Now</span>
+                  <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.3em]">Recovery Rate</span>
+                </div>
+                <div className="flex-1 flex items-end gap-1.5 h-16 xl:h-20">
+                  {[40, 70, 45, 90, 65, 80, 95].map((height, i) => (
+                    <motion.div 
+                      key={i}
+                      initial={{ height: 0 }}
+                      animate={{ height: `${height}%` }}
+                      transition={{ duration: 1, delay: i * 0.1 }}
+                      className="flex-1 bg-gradient-to-t from-rose-600 to-rose-400 rounded-t-sm opacity-80"
+                    />
+                  ))}
                 </div>
                 <div>
-                   <p className="text-3xl xl:text-4xl font-[1000] tracking-tighter mb-1 italic">Optimal <span className="text-rose-600">Sync.</span></p>
-                   <p className="text-white/40 text-[9px] font-black uppercase tracking-[0.2em]">All Systems Nominal</p>
+                   <p className="text-3xl xl:text-4xl font-[1000] tracking-tighter mb-1 italic">94% <span className="text-rose-600">Recovery.</span></p>
+                   <p className="text-white/40 text-[9px] font-black uppercase tracking-[0.2em]">+2.4% from last session</p>
                 </div>
               </div>
             </div>
@@ -260,12 +271,12 @@ export default function Dashboard() {
                <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/20 rounded-full blur-[60px]" />
                <div className="relative z-10 flex flex-col h-full justify-between gap-8 xl:gap-12">
                 <div className="flex items-center justify-between">
-                   <div className="bg-white/20 p-2.5 rounded-xl"><Activity className="w-5 h-5" /></div>
-                   <div className="px-2.5 py-1 bg-white/10 rounded-full text-[8px] font-black uppercase tracking-widest">Shield Active</div>
+                   <div className="bg-white/20 p-2.5 rounded-xl"><ShieldCheck className="w-5 h-5" /></div>
+                   <div className="px-2.5 py-1 bg-white/10 rounded-full text-[8px] font-black uppercase tracking-widest">Emergency Help</div>
                 </div>
                 <div>
-                   <p className="text-3xl xl:text-4xl font-[1000] tracking-tighter mb-1">Health <span className="text-white/50">Med</span></p>
-                   <p className="text-white/60 text-[9px] font-black uppercase tracking-[0.2em]">Standard Protocol v4.0</p>
+                   <p className="text-3xl xl:text-4xl font-[1000] tracking-tighter mb-1 uppercase italic">SOS <span className="text-white/50">Ready.</span></p>
+                   <p className="text-white/60 text-[9px] font-black uppercase tracking-[0.2em]">Immediate clinical responder</p>
                 </div>
                </div>
             </div>
