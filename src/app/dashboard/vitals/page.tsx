@@ -74,10 +74,16 @@ export default function VitalsPage() {
   }
 
   const vitals = [
-    { label: "Heart Rate", value: "72", unit: "BPM", trend: "+2", icon: Heart, color: "text-rose-500", bg: "bg-rose-50" },
-    { label: "Blood Oxygen", value: "98", unit: "%", trend: "Stable", icon: Wind, color: "text-blue-500", bg: "bg-blue-50" },
-    { label: "Glucose Level", value: "110", unit: "mg/dL", trend: "-5", icon: Droplets, color: "text-amber-500", bg: "bg-amber-50" },
-    { label: "Body Temp", value: "98.6", unit: "°F", trend: "0.0", icon: Thermometer, color: "text-emerald-500", bg: "bg-emerald-50" },
+    { label: "Pulse Rate", value: "72", unit: "BPM", trend: "Normal", icon: Heart, color: "text-rose-500", bg: "bg-rose-50", status: "Verified" },
+    { label: "SpO2 Level", value: "98", unit: "%", trend: "Optimal", icon: Wind, color: "text-blue-500", bg: "bg-blue-50", status: "Verified" },
+    { label: "Glucose", value: "110", unit: "mg/dL", trend: "Stable", icon: Droplets, color: "text-amber-500", bg: "bg-amber-50", status: "Pending" },
+    { label: "Core Temp", value: "98.6", unit: "°F", trend: "Baseline", icon: Thermometer, color: "text-emerald-500", bg: "bg-emerald-50", status: "Verified" },
+  ];
+
+  const recentAssessments = [
+    { date: "Oct 24, 2023", type: "Full Physical", doctor: "Dr. Sarah Chen", status: "Completed", icon: FileText },
+    { date: "Aug 12, 2023", type: "Cardiac Stress Test", doctor: "Cardiology Dept", status: "Analyzed", icon: Activity },
+    { date: "May 05, 2023", type: "Bio-Marker Screening", doctor: "Lab Direct", status: "Archived", icon: Zap }
   ];
 
   return (
@@ -214,15 +220,18 @@ export default function VitalsPage() {
           
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-3">
-              <div className="flex items-center gap-2 px-2.5 py-0.5 bg-rose-50 border border-rose-100 rounded-full w-fit">
-                <Zap className="w-2.5 h-2.5 text-rose-600 animate-pulse" />
-                <span className="text-[8px] font-black text-rose-600 uppercase tracking-widest">Live Bio-Stream</span>
+              <div className="flex items-center gap-2 px-2.5 py-0.5 bg-slate-900 border border-slate-800 rounded-full w-fit">
+                <FileText className="w-2.5 h-2.5 text-rose-500" />
+                <span className="text-[8px] font-black text-white/70 uppercase tracking-widest">Clinical History Uplink</span>
               </div>
               <h2 className="text-3xl xl:text-4xl font-[1000] text-slate-950 tracking-tighter leading-tight italic uppercase decoration-rose-100 decoration-8 underline-offset-[-2px]">
-                Real-time <span className="text-rose-600 underline">Vitals</span>.
+                Health <span className="text-rose-600 underline">Vitals</span>.
               </h2>
-              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest max-w-lg">Monitoring physiological telemetry via secure clinical uplink.</p>
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest max-w-lg">Aggregated repository of clinical metrics and historical assessments.</p>
             </div>
+            <Link href="/dashboard/new" className="hospital-button-primary px-6 py-3.5 text-[10px] font-black rounded-2xl shadow-xl shadow-rose-200 flex items-center justify-center gap-2.5 active:scale-95 transition-transform shrink-0 uppercase tracking-widest">
+               <Plus className="w-4 h-4" /> Log Manual Vitals
+            </Link>
           </div>
 
           {/* Vitals Grid */}
@@ -237,8 +246,11 @@ export default function VitalsPage() {
               >
                 <div className={`absolute -right-3 -top-3 w-20 h-20 ${vital.bg} rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700 opacity-50`} />
                 <div className="relative z-10 flex flex-col gap-5">
-                  <div className={`w-10 h-10 ${vital.bg} rounded-xl flex items-center justify-center`}>
-                    <vital.icon className={`w-5 h-5 ${vital.color}`} />
+                  <div className="flex items-center justify-between">
+                    <div className={`w-10 h-10 ${vital.bg} rounded-xl flex items-center justify-center`}>
+                      <vital.icon className={`w-5 h-5 ${vital.color}`} />
+                    </div>
+                    <span className={`text-[7px] font-black uppercase px-2 py-0.5 rounded-md border ${vital.status === 'Verified' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100 italic'}`}>{vital.status}</span>
                   </div>
                   <div>
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{vital.label}</p>
@@ -248,7 +260,7 @@ export default function VitalsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 px-2.5 py-1 bg-slate-50 rounded-full w-fit border border-slate-100">
-                    <TrendingUp className="w-2.5 h-2.5 text-emerald-500" />
+                    <div className={`w-1 h-1 rounded-full ${vital.trend === 'Normal' || vital.trend === 'Optimal' ? 'bg-emerald-500' : 'bg-slate-300'}`} />
                     <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest">{vital.trend} Threshold</span>
                   </div>
                 </div>
@@ -256,54 +268,76 @@ export default function VitalsPage() {
             ))}
           </div>
 
-          {/* Detailed Activity Graph Placeholder */}
-          <div className="bg-slate-950 p-8 rounded-[2.5rem] text-white relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-[50%] h-[100%] bg-rose-600/20 rounded-full blur-[100px] group-hover:bg-rose-600/30 transition-all duration-1000" />
-            <div className="relative z-10 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Detailed Activity Graph Placeholder */}
+            <div className="lg:col-span-2 bg-slate-950 p-8 rounded-[2.5rem] text-white relative overflow-hidden group h-fit">
+              <div className="absolute top-0 right-0 w-[50%] h-[100%] bg-rose-600/20 rounded-full blur-[100px] group-hover:bg-rose-600/30 transition-all duration-1000" />
+              <div className="relative z-10 space-y-6">
+                <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <h3 className="text-xl font-[1000] tracking-tighter uppercase italic">Recent Bio-History</h3>
+                      <p className="text-white/40 text-[9px] font-black uppercase tracking-widest">Aggregated physiological variance</p>
+                    </div>
+                    <div className="flex gap-2">
+                      {['1M', '3M', '6M', '1Y'].map(t => (
+                          <button key={t} className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${t === '3M' ? 'bg-rose-600 text-white' : 'bg-white/10 text-white/40 hover:bg-white/20'}`}>
+                            {t}
+                          </button>
+                      ))}
+                    </div>
+                </div>
+                
+                <div className="h-48 w-full flex items-end gap-1.5 px-3 shadow-inner">
+                    {[40, 60, 45, 70, 85, 55, 65, 50, 75, 90, 60, 80, 70, 60, 50, 55, 75, 65, 45, 80].map((h, i) => (
+                      <motion.div 
+                        key={i}
+                        initial={{ height: 0 }}
+                        animate={{ height: `${h}%` }}
+                        transition={{ delay: i * 0.05, duration: 1 }}
+                        className="flex-1 bg-gradient-to-t from-rose-600/50 to-rose-500 rounded-t-md group-hover:from-rose-500 group-hover:to-rose-400 transition-colors"
+                      />
+                    ))}
+                </div>
+                
+                <div className="flex items-center justify-between pt-5 border-t border-white/10">
+                    <div className="flex items-center gap-5">
+                      <div className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                          <span className="text-[8px] font-black text-white/60 uppercase tracking-widest">Baseline</span>
+                      </div>
+                    </div>
+                    <p className="text-[8px] font-bold text-white/40 uppercase tracking-widest flex items-center gap-2">
+                      <Clock className="w-2.5 h-2.5" /> Last Update: Oct 2024
+                    </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Assessments Sidebar */}
+            <div className="space-y-6">
                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                     <h3 className="text-xl font-[1000] tracking-tighter uppercase italic">Telemetry Graph</h3>
-                     <p className="text-white/40 text-[9px] font-black uppercase tracking-widest">24-hour physiological variance</p>
-                  </div>
-                  <div className="flex gap-2">
-                     {['1H', '6H', '24H', '1W'].map(t => (
-                        <button key={t} className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${t === '24H' ? 'bg-rose-600 text-white' : 'bg-white/10 text-white/40 hover:bg-white/20'}`}>
-                           {t}
-                        </button>
-                     ))}
-                  </div>
+                  <h3 className="text-sm font-black text-slate-950 uppercase tracking-widest">Timeline</h3>
+                  <button className="text-[9px] font-black text-rose-600 uppercase tracking-widest">View All</button>
                </div>
-               
-               <div className="h-48 w-full flex items-end gap-1.5 px-3 shadow-inner">
-                  {[40, 60, 45, 70, 85, 55, 65, 50, 75, 90, 60, 80, 70, 60, 50, 55, 75, 65, 45, 80].map((h, i) => (
-                    <motion.div 
-                      key={i}
-                      initial={{ height: 0 }}
-                      animate={{ height: `${h}%` }}
-                      transition={{ delay: i * 0.05, duration: 1 }}
-                      className="flex-1 bg-gradient-to-t from-rose-600/50 to-rose-500 rounded-t-md group-hover:from-rose-500 group-hover:to-rose-400 transition-colors"
-                    />
+               <div className="space-y-4">
+                  {recentAssessments.map((item, idx) => (
+                    <div key={idx} className="bg-white border border-slate-100 p-5 rounded-2xl hover:border-rose-100 transition-all group flex items-center gap-4">
+                        <div className="bg-slate-50 p-3 rounded-xl group-hover:bg-rose-50 transition-colors">
+                           <item.icon className="w-4 h-4 text-slate-400 group-hover:text-rose-600" />
+                        </div>
+                        <div className="flex-1">
+                           <p className="text-[10px] font-black text-slate-950 uppercase tracking-tight">{item.type}</p>
+                           <p className="text-[9px] font-bold text-slate-400">{item.doctor}</p>
+                        </div>
+                        <div className="text-right">
+                           <p className="text-[8px] font-black text-slate-950">{item.date}</p>
+                           <span className="text-[7px] font-black text-emerald-600 uppercase">{item.status}</span>
+                        </div>
+                    </div>
                   ))}
-               </div>
-               
-               <div className="flex items-center justify-between pt-5 border-t border-white/10">
-                  <div className="flex items-center gap-5">
-                     <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                        <span className="text-[8px] font-black text-white/60 uppercase tracking-widest">Active Rate</span>
-                     </div>
-                     <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
-                        <span className="text-[8px] font-black text-white/60 uppercase tracking-widest">Resting Phase</span>
-                     </div>
-                  </div>
-                  <p className="text-[8px] font-bold text-white/40 uppercase tracking-widest flex items-center gap-2">
-                    <Clock className="w-2.5 h-2.5" /> Last Sync: Just Now
-                  </p>
                </div>
             </div>
           </div>
-
         </div>
       </main>
     </div>
