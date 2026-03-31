@@ -32,6 +32,7 @@ import { deleteCookie } from "cookies-next";
 export default function VitalsPage() {
   const { user: authUser, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [lastReport, setLastReport] = useState<any>(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([
     { id: 1, type: 'success', title: 'Health Analysis Complete', desc: 'Your latest biometric sync shows optimal heart rate stability.', time: '2 mins ago', icon: CheckCircle2, color: 'bg-emerald-100', iconColor: 'text-emerald-600' },
@@ -58,7 +59,27 @@ export default function VitalsPage() {
       router.push("/login");
       return;
     }
-    setLoading(false);
+    
+    const fetchLatestVitals = async () => {
+      try {
+        const q = query(
+          collection(db, "reports"),
+          where("userId", "==", authUser.uid),
+          orderBy("createdAt", "desc"),
+          limit(1)
+        );
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          setLastReport(querySnapshot.docs[0].data());
+        }
+      } catch (err) {
+        console.error("Error fetching vitals:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLatestVitals();
   }, [authUser, authLoading, router]);
 
   if (loading) {
@@ -74,10 +95,10 @@ export default function VitalsPage() {
   }
 
   const vitals = [
-    { label: "Pulse Rate", value: "72", unit: "BPM", trend: "Normal", icon: Heart, color: "text-rose-500", bg: "bg-rose-50", status: "Verified" },
-    { label: "SpO2 Level", value: "98", unit: "%", trend: "Optimal", icon: Wind, color: "text-blue-500", bg: "bg-blue-50", status: "Verified" },
+    { label: "Pulse Rate", value: lastReport?.heartRate || "72", unit: "BPM", trend: lastReport?.heartRate ? "Recent" : "Normal", icon: Heart, color: "text-rose-500", bg: "bg-rose-50", status: lastReport?.heartRate ? "Verified" : "Baseline" },
+    { label: "SpO2 Level", value: lastReport?.bloodOxygen || "98", unit: "%", trend: lastReport?.bloodOxygen ? "Recent" : "Optimal", icon: Wind, color: "text-blue-500", bg: "bg-blue-50", status: lastReport?.bloodOxygen ? "Verified" : "Baseline" },
     { label: "Glucose", value: "110", unit: "mg/dL", trend: "Stable", icon: Droplets, color: "text-amber-500", bg: "bg-amber-50", status: "Pending" },
-    { label: "Core Temp", value: "98.6", unit: "°F", trend: "Baseline", icon: Thermometer, color: "text-emerald-500", bg: "bg-emerald-50", status: "Verified" },
+    { label: "Core Temp", value: lastReport?.temperature || "98.6", unit: "°F", trend: lastReport?.temperature ? "Recent" : "Baseline", icon: Thermometer, color: "text-emerald-500", bg: "bg-emerald-50", status: lastReport?.temperature ? "Verified" : "Baseline" },
   ];
 
   const recentAssessments = [
