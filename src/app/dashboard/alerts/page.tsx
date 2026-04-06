@@ -21,8 +21,8 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { deleteCookie } from "cookies-next";
 import { auth } from "@/lib/firebase";
+import { clearServerSession } from "@/lib/auth-session-client";
 
 export default function AlertsPage() {
   const { user: authUser, loading: authLoading } = useAuth();
@@ -43,7 +43,7 @@ export default function AlertsPage() {
   const handleLogout = async () => {
     try {
       await auth.signOut();
-      deleteCookie("session");
+      await clearServerSession();
       router.push("/login");
     } catch (error) {
       console.error("Logout error:", error);

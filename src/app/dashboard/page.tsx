@@ -29,7 +29,6 @@ import {
   AlertCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { deleteCookie } from "cookies-next";
 import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function Dashboard() {

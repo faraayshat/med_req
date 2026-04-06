@@ -26,7 +26,6 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { deleteCookie } from "cookies-next";
 
 export default function RecordsPage() {
   const { user: authUser, loading: authLoading } = useAuth();
