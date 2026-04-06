@@ -11,8 +11,8 @@ import {
   ShieldCheck
 } from "lucide-react";
 import { auth } from "@/lib/firebase";
-import { deleteCookie } from "cookies-next";
 import { useRouter } from "next/navigation";
+import { clearServerSession } from "@/lib/auth-session-client";
 
 interface SidebarProps {
   activePath?: string;
@@ -23,7 +23,7 @@ export default function Sidebar({ activePath = "/dashboard" }: SidebarProps) {
 
   const handleLogout = async () => {
     await auth.signOut();
-    deleteCookie("__session");
+    await clearServerSession();
     router.push("/");
   };
 

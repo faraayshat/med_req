@@ -6,7 +6,7 @@ import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { setCookie } from "cookies-next";
+import { createServerSession } from "@/lib/auth-session-client";
 import { Heart, User, Mail, Lock, Phone, MapPin, Languages, ArrowRight, ShieldCheck, Activity } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -33,7 +33,7 @@ export default function Signup() {
         createdAt: new Date()
       }, { merge: true });
 
-      setCookie("__session", user.uid, { maxAge: 60 * 60 * 24 * 7 });
+      await createServerSession(user);
       router.push("/dashboard");
     } catch (err: any) {
       console.error("Firestore Error:", err);

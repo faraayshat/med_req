@@ -5,7 +5,7 @@ import { auth, googleProvider } from "@/lib/firebase";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { setCookie } from "cookies-next";
+import { createServerSession } from "@/lib/auth-session-client";
 import { Heart, Mail, Lock, Languages, ArrowRight, ShieldCheck, Activity } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -16,7 +16,7 @@ export default function Login() {
   const router = useRouter();
 
   const handleAuthSuccess = async (user: any) => {
-    setCookie("__session", user.uid, { maxAge: 60 * 60 * 24 * 7 });
+    await createServerSession(user);
     router.push("/dashboard");
   };
 

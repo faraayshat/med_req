@@ -29,8 +29,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { deleteCookie } from "cookies-next";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { clearServerSession } from "@/lib/auth-session-client";
 
 export default function ProfileSettings() {
   const { user: authUser, loading: authLoading } = useAuth();
@@ -101,7 +101,7 @@ export default function ProfileSettings() {
 
   const handleLogout = async () => {
     await auth.signOut();
-    deleteCookie("__session");
+    await clearServerSession();
     router.push("/");
   };
 
