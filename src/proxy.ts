@@ -5,8 +5,30 @@ export function middleware(request: NextRequest) {
   return proxy(request);
 }
 
-export function proxy(request: NextRequest) {
+async function hasValidSession(request: NextRequest) {
   const session = request.cookies.get('__session')?.value;
+  if (!session) {
+    return false;
+  }
+
+  try {
+    const verifyUrl = new URL('/api/auth/verify', request.url);
+    const verifyResponse = await fetch(verifyUrl, {
+      method: 'GET',
+      headers: {
+        cookie: request.headers.get('cookie') || '',
+      },
+      cache: 'no-store',
+    });
+
+    return verifyResponse.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function proxy(request: NextRequest) {
+  const sessionIsValid = await hasValidSession(request);
 
   // Define protected routes
   const isDashboard = request.nextUrl.pathname.startsWith('/dashboard');
@@ -14,12 +36,12 @@ export function proxy(request: NextRequest) {
   const isAuthPage = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup');
 
   // If user is not logged in and tries to access protected routes
-  if ((isDashboard || isResults) && !session) {
+  if ((isDashboard || isResults) && !sessionIsValid) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
   // If user is logged in and tries to access auth pages
-  if (isAuthPage && session) {
+  if (isAuthPage && sessionIsValid) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
