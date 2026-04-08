@@ -83,7 +83,7 @@ export default function ProfileSettings() {
 
         // Fetch History (Simplified: fetching recent reports as history)
         const q = query(
-          collection(db, "reports"),
+          collection(db, "reportSummaries"),
           where("userId", "==", authUser.uid),
           orderBy("createdAt", "desc"),
           limit(5)

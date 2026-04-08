@@ -55,7 +55,7 @@ export default function Dashboard() {
     const fetchReports = async () => {
       try {
         const q = query(
-          collection(db, "reports"),
+          collection(db, "reportSummaries"),
           where("userId", "==", authUser.uid),
           orderBy("createdAt", "desc"),
           limit(5)

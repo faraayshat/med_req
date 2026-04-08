@@ -4,6 +4,7 @@ import { adminDb } from "@/lib/firebase-admin";
 import { buildClinicalAssessment } from "@/lib/clinical-analysis";
 import { analyzeFormSchema } from "@/lib/analyze-schema";
 import { createRequestId, logEvent, safeErrorMessage } from "@/lib/observability";
+import { recordMetric } from "@/lib/metrics";
 
 const WORKER_TIMEOUT_MS = 10_000;
 
@@ -34,6 +35,7 @@ export async function POST(request: NextRequest) {
   }
 
   const requestId = createRequestId();
+  const startedAt = Date.now();
 
   try {
     const queuedJobs = await adminDb
@@ -155,6 +157,9 @@ export async function POST(request: NextRequest) {
       requestId,
       error: error instanceof Error ? error.message : "unknown",
     });
+    await recordMetric({ route: "analyze.worker", status: "error", durationMs: Date.now() - startedAt });
     return NextResponse.json({ error: safeErrorMessage() }, { status: 500 });
+  } finally {
+    await recordMetric({ route: "analyze.worker", status: "success", durationMs: Date.now() - startedAt });
   }
 }

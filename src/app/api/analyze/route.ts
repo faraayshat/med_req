@@ -7,6 +7,7 @@ import { verifySessionFromRequest } from "@/lib/auth-server";
 import { createRequestId, logEvent, safeErrorMessage } from "@/lib/observability";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { isTrustedSameOrigin, secureApiHeaders } from "@/lib/request-security";
+import { recordMetric } from "@/lib/metrics";
 
 const MAX_BODY_BYTES = 32 * 1024;
 
@@ -25,6 +26,7 @@ function makeIdempotencyDocId(uid: string, idempotencyKey: string): string {
 export async function POST(request: NextRequest) {
   const requestId = createRequestId();
   const ip = getClientIp(request);
+  const startedAt = Date.now();
 
   try {
     if (!isTrustedSameOrigin(request)) {
@@ -139,7 +141,7 @@ export async function POST(request: NextRequest) {
     }
 
     const workerToken = process.env.ANALYZE_WORKER_SECRET;
-    const workerUrl = new URL("/api/analyze/worker", request.nextUrl.origin);
+    const workerUrl = new URL("/api/analyze/drain?batch=3", request.nextUrl.origin);
     try {
       const wakeController = new AbortController();
       const wakeTimeout = setTimeout(() => wakeController.abort(), 1500);
@@ -178,7 +180,10 @@ export async function POST(request: NextRequest) {
       ip,
       error: error instanceof Error ? error.message : "unknown",
     });
+    await recordMetric({ route: "analyze.enqueue", status: "error", durationMs: Date.now() - startedAt });
     return NextResponse.json({ error: safeErrorMessage() }, { status: 500, headers: secureApiHeaders({ "x-request-id": requestId }) });
+  } finally {
+    await recordMetric({ route: "analyze.enqueue", status: "success", durationMs: Date.now() - startedAt });
   }
 }
 

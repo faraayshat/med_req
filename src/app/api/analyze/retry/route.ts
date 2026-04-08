@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const workerToken = process.env.ANALYZE_WORKER_SECRET;
-    const workerUrl = new URL("/api/analyze/worker", request.nextUrl.origin);
+    const workerUrl = new URL("/api/analyze/drain?batch=5", request.nextUrl.origin);
 
     const response = await fetch(workerUrl, {
       method: "POST",
