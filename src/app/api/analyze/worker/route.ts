@@ -39,15 +39,20 @@ export async function POST(request: NextRequest) {
     const queuedJobs = await adminDb
       .collection("analysisJobs")
       .where("status", "==", "queued")
-      .orderBy("createdAt", "asc")
-      .limit(1)
+      .limit(10)
       .get();
 
     if (queuedJobs.empty) {
       return NextResponse.json({ success: true, processed: false, message: "No queued jobs" });
     }
 
-    const jobDoc = queuedJobs.docs[0];
+    const jobDoc = queuedJobs.docs
+      .slice()
+      .sort((a, b) => {
+        const aMs = a.get("createdAt")?.toMillis?.() ?? 0;
+        const bMs = b.get("createdAt")?.toMillis?.() ?? 0;
+        return aMs - bMs;
+      })[0];
     const job = jobDoc.data() as { reportId: string; userId: string };
     const reportRef = adminDb.collection("reports").doc(job.reportId);
 
