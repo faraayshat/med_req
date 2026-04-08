@@ -1,18 +1,20 @@
 import { z } from "zod";
 
 const optionalNumber = (min: number, max: number) =>
-  z
-    .union([z.string(), z.number()])
-    .optional()
-    .transform((value) => {
+  z.preprocess(
+    (value) => {
       if (value === undefined || value === null || value === "") {
         return undefined;
       }
       const parsed = typeof value === "number" ? value : Number(value);
       return Number.isFinite(parsed) ? parsed : Number.NaN;
-    })
-    .refine((value) => value === undefined || !Number.isNaN(value), "Must be a number")
-    .refine((value) => value === undefined || (value >= min && value <= max), `Must be between ${min} and ${max}`);
+    },
+    z
+      .number({ message: "Must be a number" })
+      .refine((value) => !Number.isNaN(value), "Must be a number")
+      .refine((value) => value >= min && value <= max, `Must be between ${min} and ${max}`)
+      .optional()
+  );
 
 const requiredNumber = (min: number, max: number) =>
   z
