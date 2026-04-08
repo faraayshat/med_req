@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
   const requestId = createRequestId();
   const ip = getClientIp(request);
   const startedAt = Date.now();
+  let metricStatus: "success" | "error" = "success";
 
   try {
     if (!isTrustedSameOrigin(request)) {
@@ -175,15 +176,15 @@ export async function POST(request: NextRequest) {
       }
     );
   } catch (error) {
+    metricStatus = "error";
     logEvent("error", "analyze.enqueue_failed", {
       requestId,
       ip,
       error: error instanceof Error ? error.message : "unknown",
     });
-    await recordMetric({ route: "analyze.enqueue", status: "error", durationMs: Date.now() - startedAt });
     return NextResponse.json({ error: safeErrorMessage() }, { status: 500, headers: secureApiHeaders({ "x-request-id": requestId }) });
   } finally {
-    await recordMetric({ route: "analyze.enqueue", status: "success", durationMs: Date.now() - startedAt });
+    await recordMetric({ route: "analyze.enqueue", status: metricStatus, durationMs: Date.now() - startedAt });
   }
 }
 

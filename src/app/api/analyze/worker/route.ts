@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
 
   const requestId = createRequestId();
   const startedAt = Date.now();
+  let metricStatus: "success" | "error" = "success";
 
   try {
     const queuedJobs = await adminDb
@@ -153,13 +154,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, processed: true, reportId: job.reportId, jobId: jobDoc.id });
   } catch (error) {
+    metricStatus = "error";
     logEvent("error", "analyze.worker_failed", {
       requestId,
       error: error instanceof Error ? error.message : "unknown",
     });
-    await recordMetric({ route: "analyze.worker", status: "error", durationMs: Date.now() - startedAt });
     return NextResponse.json({ error: safeErrorMessage() }, { status: 500 });
   } finally {
-    await recordMetric({ route: "analyze.worker", status: "success", durationMs: Date.now() - startedAt });
+    await recordMetric({ route: "analyze.worker", status: metricStatus, durationMs: Date.now() - startedAt });
   }
 }

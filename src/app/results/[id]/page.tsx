@@ -68,15 +68,37 @@ export default function Results() {
   const downloadPDF = async () => {
     setDownloading(true);
     try {
-      const pdfFile = await generatePdfFile();
-      const url = URL.createObjectURL(pdfFile);
+      const response = await fetch(`/api/results/${id as string}/pdf`, {
+        method: "GET",
+        credentials: "same-origin",
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error("Server PDF generation failed");
+      }
+
+      const serverBlob = await response.blob();
+      const fileName = `HealthReport-${(report?.name || "Patient").replace(/\s+/g, "_")}.pdf`;
+      const url = URL.createObjectURL(serverBlob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = pdfFile.name;
+      a.download = fileName;
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("PDF Generation Error:", err);
+      console.error("Server PDF generation failed, using client fallback:", err);
+      try {
+        const pdfFile = await generatePdfFile();
+        const url = URL.createObjectURL(pdfFile);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = pdfFile.name;
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (fallbackError) {
+        console.error("PDF fallback failed:", fallbackError);
+      }
     } finally {
       setDownloading(false);
     }
@@ -84,7 +106,25 @@ export default function Results() {
 
   const shareReport = async () => {
     try {
-      const file = await generatePdfFile();
+      let file: File;
+
+      try {
+        const response = await fetch(`/api/results/${id as string}/pdf`, {
+          method: "GET",
+          credentials: "same-origin",
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          throw new Error("Server PDF generation failed");
+        }
+
+        const blob = await response.blob();
+        const fileName = `HealthReport-${(report?.name || "Patient").replace(/\s+/g, "_")}.pdf`;
+        file = new File([blob], fileName, { type: "application/pdf" });
+      } catch {
+        file = await generatePdfFile();
+      }
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
