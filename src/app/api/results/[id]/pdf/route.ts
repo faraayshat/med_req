@@ -9,7 +9,7 @@ function buildPdfBuffer(reportId: string, report: Record<string, unknown>): Prom
     const doc = new PDFDocument({ margin: 40 });
     const chunks: Buffer[] = [];
 
-    doc.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
+    doc.on("data", (chunk: Buffer) => chunks.push(Buffer.from(chunk)));
     doc.on("end", () => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
 
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
 
   const pdfBuffer = await buildPdfBuffer(id, report);
 
-  return new NextResponse(pdfBuffer, {
+  return new NextResponse(new Uint8Array(pdfBuffer), {
     status: 200,
     headers: {
       ...secureApiHeaders(),

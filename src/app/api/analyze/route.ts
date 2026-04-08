@@ -184,7 +184,9 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json({ error: safeErrorMessage() }, { status: 500, headers: secureApiHeaders({ "x-request-id": requestId }) });
   } finally {
-    await recordMetric({ route: "analyze.enqueue", status: metricStatus, durationMs: Date.now() - startedAt });
+    void recordMetric({ route: "analyze.enqueue", status: metricStatus, durationMs: Date.now() - startedAt }).catch(() => {
+      // Metrics must never block API response flow.
+    });
   }
 }
 

@@ -34,10 +34,17 @@ vi.mock("@/lib/firebase-admin", () => ({
 }));
 
 vi.mock("firebase-admin", () => ({
+  firestore: {
+    FieldValue: {
+      serverTimestamp: () => ({ _serverTimestamp: true }),
+      increment: (value: number) => ({ _increment: value }),
+    },
+  },
   default: {
     firestore: {
       FieldValue: {
         serverTimestamp: () => ({ _serverTimestamp: true }),
+        increment: (value: number) => ({ _increment: value }),
       },
     },
   },
