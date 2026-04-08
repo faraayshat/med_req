@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { clearServerSession } from "@/lib/auth-session-client";
+import { signOutUser } from "@/lib/auth-client";
 
 export default function VitalsPage() {
   const { user: authUser, loading: authLoading } = useAuth();
@@ -45,8 +45,7 @@ export default function VitalsPage() {
 
   const handleLogout = async () => {
     try {
-      await auth.signOut();
-      await clearServerSession();
+      await signOutUser();
       router.push("/login");
     } catch (error) {
       console.error("Logout error:", error);

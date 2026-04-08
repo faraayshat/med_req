@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { 
   FileText, 
   Activity, 
@@ -22,38 +22,57 @@ import * as htmlToImage from 'html-to-image';
 
 export default function Results() {
   const { id } = useParams();
+  const searchParams = useSearchParams();
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
-  const router = useRouter();
+  const [status, setStatus] = useState<string>("pending");
+  const [cachedPdf, setCachedPdf] = useState<File | null>(null);
+
+  const generatePdfFile = async () => {
+    if (cachedPdf) {
+      return cachedPdf;
+    }
+
+    const element = document.getElementById("report-content");
+    if (!element) {
+      throw new Error("Report content is unavailable");
+    }
+
+    const dataUrl = await htmlToImage.toPng(element, {
+      quality: 0.8,
+      backgroundColor: "#f8fafc",
+      style: { colorScheme: "light" },
+      pixelRatio: 1.5,
+    });
+
+    const pdf = new jsPDF("p", "mm", "a4", true);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+
+    const img = new Image();
+    img.src = dataUrl;
+    await new Promise((resolve) => (img.onload = resolve));
+
+    const pdfHeight = (img.height * pdfWidth) / img.width;
+    pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight, undefined, "FAST");
+
+    const fileName = `HealthReport-${(report?.name || "Patient").replace(/\s+/g, "_")}.pdf`;
+    const blob = pdf.output("blob");
+    const file = new File([blob], fileName, { type: "application/pdf" });
+    setCachedPdf(file);
+    return file;
+  };
 
   const downloadPDF = async () => {
-    const element = document.getElementById("report-content");
-    if (!element) return;
-    
     setDownloading(true);
     try {
-      // Optimized for 1-3MB file size: lower pixelRatio and focused compression
-      const dataUrl = await htmlToImage.toPng(element, {
-        quality: 0.8, // Reduced quality for better compression
-        backgroundColor: "#f8fafc",
-        style: { colorScheme: 'light' },
-        pixelRatio: 1.5 // Lower density to reduce raw image size while keeping it sharp
-      });
-      
-      const pdf = new jsPDF("p", "mm", "a4", true); // Enable internal PDF compression
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      
-      const img = new Image();
-      img.src = dataUrl;
-      await new Promise((resolve) => (img.onload = resolve));
-      
-      const pdfHeight = (img.height * pdfWidth) / img.width;
-      
-      // Using "FAST" compression alias for the image insertion
-      pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
-      const fileName = `HealthReport-${(report.name || "Patient").replace(/\s+/g, "_")}.pdf`;
-      pdf.save(fileName);
+      const pdfFile = await generatePdfFile();
+      const url = URL.createObjectURL(pdfFile);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = pdfFile.name;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (err) {
       console.error("PDF Generation Error:", err);
     } finally {
@@ -62,33 +81,8 @@ export default function Results() {
   };
 
   const shareReport = async () => {
-    const element = document.getElementById("report-content");
-    if (!element) return;
-
     try {
-      // PDF Compression Optimization (Aiming for 1-3MB)
-      const dataUrl = await htmlToImage.toPng(element, {
-        quality: 0.8,
-        backgroundColor: "#f8fafc",
-        style: { colorScheme: 'light' },
-        pixelRatio: 1.5 // Balance between quality and file weight
-      });
-      
-      const pdf = new jsPDF("p", "mm", "a4", true); // true enables compression
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      
-      const img = new Image();
-      img.src = dataUrl;
-      await new Promise((resolve) => (img.onload = resolve));
-      const pdfHeight = (img.height * pdfWidth) / img.width;
-      
-      // 'FAST' compression alias for image integration
-      pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
-      
-      const pdfBlob = pdf.output('blob');
-      const safeName = (report.name || "Patient").replace(/\s+/g, "_");
-      const filename = `HealthReport-${safeName}.pdf`;
-      const file = new File([pdfBlob], filename, { type: 'application/pdf' });
+      const file = await generatePdfFile();
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
@@ -97,10 +91,10 @@ export default function Results() {
           text: `Medical assessment report (Ref: ${(id as string).slice(0, 8).toUpperCase()})`,
         });
       } else {
-        const url = URL.createObjectURL(pdfBlob);
+        const url = URL.createObjectURL(file);
         const a = document.createElement('a');
         a.href = url;
-        a.download = filename;
+        a.download = file.name;
         a.click();
         URL.revokeObjectURL(url);
       }
@@ -110,12 +104,24 @@ export default function Results() {
   };
 
   useEffect(() => {
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
+
     const fetchReport = async () => {
       try {
         const docRef = doc(db, "reports", id as string);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setReport(docSnap.data());
+          const data = docSnap.data();
+          setReport(data);
+          setStatus(data.status || "pending");
+
+          if ((data.status || "pending") === "pending" && !pollTimer) {
+            pollTimer = setInterval(fetchReport, 4000);
+          }
+          if ((data.status || "pending") !== "pending" && pollTimer) {
+            clearInterval(pollTimer);
+            pollTimer = null;
+          }
         }
       } catch (err) {
         console.error("Error fetching report:", err);
@@ -124,7 +130,17 @@ export default function Results() {
       }
     };
     fetchReport();
-  }, [id]);
+
+    if (searchParams.get("pending") === "1") {
+      pollTimer = setInterval(fetchReport, 4000);
+    }
+
+    return () => {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+      }
+    };
+  }, [id, searchParams]);
 
   if (loading) {
     return (
@@ -181,7 +197,7 @@ export default function Results() {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 px-3 py-1 bg-rose-50 rounded-full w-fit">
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-                  <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider">Assessment Complete</span>
+                  <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider">{status === "pending" ? "Assessment Pending" : "Assessment Complete"}</span>
                 </div>
                 <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Health Analysis Report</h1>
                 <p className="text-slate-500 text-sm font-medium">Reference ID: <span className="text-slate-900 font-bold">{(id as string)?.slice(0, 8).toUpperCase()}</span> • {new Date(report.createdAt?.seconds * 1000).toLocaleDateString()}</p>
@@ -190,7 +206,7 @@ export default function Results() {
             <div className="flex items-center gap-3">
               <button 
                 onClick={downloadPDF}
-                disabled={downloading}
+                disabled={downloading || status === "pending"}
                 className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-slate-700 text-xs font-bold hover:bg-slate-50 transition-all shadow-sm disabled:opacity-50"
               >
                 {downloading ? (
@@ -202,13 +218,21 @@ export default function Results() {
               </button>
               <button 
                 onClick={shareReport}
-                className="flex items-center gap-2 px-6 py-3 bg-rose-500 text-white rounded-2xl text-xs font-bold hover:bg-rose-600 transition-all shadow-lg shadow-rose-200"
+                disabled={status === "pending"}
+                className="flex items-center gap-2 px-6 py-3 bg-rose-500 text-white rounded-2xl text-xs font-bold hover:bg-rose-600 transition-all shadow-lg shadow-rose-200 disabled:opacity-50"
               >
                 <Share2 className="w-4 h-4" />
                 Share Report
               </button>
             </div>
           </div>
+
+          {status === "pending" && (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3">
+              <Loader2 className="w-4 h-4 text-amber-600 animate-spin" />
+              <p className="text-xs font-semibold text-amber-700">Analysis is still running. This page auto-refreshes every few seconds.</p>
+            </div>
+          )}
 
           <div id="report-content" className="grid grid-cols-1 lg:grid-cols-12 gap-8 p-1">
             
@@ -309,8 +333,8 @@ export default function Results() {
                     const title = typeof rec === 'string' ? rec : (rec.title || "Recommendation");
                     const desc = typeof rec === 'object' ? rec.desc : "";
                     const medication = typeof rec === 'object' ? rec.medication : null;
-                    const accuracy = typeof rec === 'object' ? rec.accuracy : null;
-                    const sourceUrl = typeof rec === 'object' ? rec.sourceUrl : null;
+                    const confidence = typeof rec === 'object' ? rec.confidence : null;
+                    const citations = typeof rec === 'object' && Array.isArray(rec.citations) ? rec.citations : [];
                     
                     return (
                       <div key={i} className="group p-8 rounded-[2.5rem] border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/10 transition-all duration-300 flex flex-col gap-5 shadow-sm">
@@ -324,10 +348,10 @@ export default function Results() {
                               <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-2xl">{desc}</p>
                             </div>
                           </div>
-                          {accuracy && (
+                          {confidence && (
                             <div className="flex flex-col items-end gap-1">
                               <div className="px-3 py-1 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-widest leading-none">
-                                {accuracy} Match
+                                {confidence}% Confidence
                               </div>
                               <p className="text-[8px] font-bold text-slate-400 tracking-tighter uppercase px-1">Confidence Score</p>
                             </div>
@@ -344,17 +368,26 @@ export default function Results() {
                               <p className="text-sm font-bold text-slate-900 leading-snug">{medication}</p>
                               <p className="text-[10px] text-slate-400 font-medium italic">Consult a licensed physician before consuming any medication.</p>
                             </div>
-                            {sourceUrl && (
-                              <a 
-                                href={sourceUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-2.5 bg-slate-50 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all"
-                                title="View Medical Source"
-                              >
-                                <ExternalLink className="w-4 h-4" />
-                              </a>
-                            )}
+                          </div>
+                        )}
+
+                        {citations.length > 0 && (
+                          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-2">
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Evidence Sources</p>
+                            <div className="space-y-1.5">
+                              {citations.map((citation: any, citationIndex: number) => (
+                                <a
+                                  key={`${i}-${citationIndex}`}
+                                  href={citation.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center justify-between gap-3 text-xs text-slate-700 hover:text-rose-600 transition-colors"
+                                >
+                                  <span>{citation.publisher}: {citation.title}</span>
+                                  <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                                </a>
+                              ))}
+                            </div>
                           </div>
                         )}
                       </div>

@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { onIdTokenChanged, User } from "firebase/auth";
 import { auth, createUserProfile } from "@/lib/firebase";
-import { clearServerSession, createServerSession } from "@/lib/auth-session-client";
+import { clearAuthSession, syncSessionForUser } from "@/lib/auth-client";
 
 interface AuthContextType {
   user: User | null;
@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         await createUserProfile(user);
 
         try {
-          await createServerSession(user);
+          await syncSessionForUser(user);
         } catch (error) {
           console.error("Failed to synchronize secure session", error);
         }
@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(user);
       } else {
         setUser(null);
-        await clearServerSession();
+        await clearAuthSession();
       }
       setLoading(false);
     });

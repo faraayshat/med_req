@@ -30,7 +30,7 @@ import {
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { clearServerSession } from "@/lib/auth-session-client";
+import { signOutUser } from "@/lib/auth-client";
 
 export default function ProfileSettings() {
   const { user: authUser, loading: authLoading } = useAuth();
@@ -100,8 +100,7 @@ export default function ProfileSettings() {
   }, [authUser, authLoading, router]);
 
   const handleLogout = async () => {
-    await auth.signOut();
-    await clearServerSession();
+    await signOutUser();
     router.push("/");
   };
 

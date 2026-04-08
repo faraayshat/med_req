@@ -6,7 +6,7 @@ import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createServerSession } from "@/lib/auth-session-client";
+import { syncSessionForUser } from "@/lib/auth-client";
 import { Heart, User, Mail, Lock, Phone, MapPin, Languages, ArrowRight, ShieldCheck, Activity } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -33,7 +33,7 @@ export default function Signup() {
         createdAt: new Date()
       }, { merge: true });
 
-      await createServerSession(user);
+      await syncSessionForUser(user);
       router.push("/dashboard");
     } catch (err: any) {
       console.error("Firestore Error:", err);

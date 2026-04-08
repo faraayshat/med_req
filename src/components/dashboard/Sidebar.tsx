@@ -10,9 +10,8 @@ import {
   LogOut,
   ShieldCheck
 } from "lucide-react";
-import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
-import { clearServerSession } from "@/lib/auth-session-client";
+import { signOutUser } from "@/lib/auth-client";
 
 interface SidebarProps {
   activePath?: string;
@@ -22,8 +21,7 @@ export default function Sidebar({ activePath = "/dashboard" }: SidebarProps) {
   const router = useRouter();
 
   const handleLogout = async () => {
-    await auth.signOut();
-    await clearServerSession();
+    await signOutUser();
     router.push("/");
   };
 

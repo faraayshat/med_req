@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { 
   ArrowLeft, 
@@ -27,6 +26,7 @@ const STEPS = ["Unified Clinical Assessment"];
 export default function NewReport() {
   const { user: authUser } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [submissionError, setSubmissionError] = useState("");
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -37,9 +37,18 @@ export default function NewReport() {
     weight: "",
     reason: "",
     symptoms: "",
+    symptomDurationDays: "",
     heartRate: "",
     bloodOxygen: "",
     temperature: "",
+    history: {
+      existingConditions: "",
+      medications: "",
+      allergies: "",
+      smoking: "unknown",
+      alcohol: "unknown",
+      familyHistory: "",
+    },
   });
   const [file, setFile] = useState<File | null>(null);
 
@@ -53,6 +62,8 @@ export default function NewReport() {
 
 const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmissionError("");
+
     if (!authUser) {
       alert("Authentication required for transmission.");
       return;
@@ -60,15 +71,14 @@ const handleSubmit = async (e: React.FormEvent) => {
     setLoading(true);
 
     try {
-      const idToken = await authUser.getIdToken();
+      const idempotencyKey = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${idToken}`
+          "x-idempotency-key": idempotencyKey,
         },
         body: JSON.stringify({
-          userId: authUser.uid,
           formData,
         }),
       });
@@ -79,10 +89,10 @@ const handleSubmit = async (e: React.FormEvent) => {
       }
 
       const result = await response.json();
-      router.push(`/results/${result.id}`);
+      router.push(`/results/${result.reportId}?pending=1`);
     } catch (error: any) {
       console.error("Submission failed:", error);
-      alert(`Portal failure: ${error.message || "Transmission interrupted."}`);
+      setSubmissionError(error.message || "Transmission interrupted.");
     } finally {
       setLoading(false);
     }
@@ -233,13 +243,93 @@ const handleSubmit = async (e: React.FormEvent) => {
                     <label className="text-xs font-semibold text-slate-600 ml-1">Describe Symptoms</label>
                     <textarea name="symptoms" value={formData.symptoms} onChange={handleChange} className="hospital-input w-full p-4 min-h-[100px] border-slate-200 focus:border-rose-500 bg-slate-50/30 text-sm leading-relaxed" placeholder="Please list any symptoms you're feeling..." required suppressHydrationWarning />
                   </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-600 ml-1">Symptom Duration (days)</label>
+                    <input type="number" min="0" name="symptomDurationDays" value={formData.symptomDurationDays} onChange={handleChange} className="hospital-input w-full p-4 border-slate-200 focus:border-rose-500 bg-slate-50/30 text-sm" placeholder="e.g. 3" suppressHydrationWarning />
+                  </div>
+                </div>
+              </div>
+
+              {/* Medical History */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-xs font-bold">4</div>
+                  <h3 className="text-sm font-bold text-slate-800">Medical History</h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-2 sm:col-span-2">
+                    <label className="text-xs font-semibold text-slate-600 ml-1">Existing Conditions (comma separated)</label>
+                    <input
+                      type="text"
+                      value={formData.history.existingConditions}
+                      onChange={(e) => setFormData({ ...formData, history: { ...formData.history, existingConditions: e.target.value } })}
+                      className="hospital-input w-full p-4 border-slate-200 focus:border-rose-500 bg-slate-50/30 text-sm"
+                      placeholder="e.g. hypertension, asthma"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-600 ml-1">Medications</label>
+                    <input
+                      type="text"
+                      value={formData.history.medications}
+                      onChange={(e) => setFormData({ ...formData, history: { ...formData.history, medications: e.target.value } })}
+                      className="hospital-input w-full p-4 border-slate-200 focus:border-rose-500 bg-slate-50/30 text-sm"
+                      placeholder="e.g. metformin"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-600 ml-1">Allergies</label>
+                    <input
+                      type="text"
+                      value={formData.history.allergies}
+                      onChange={(e) => setFormData({ ...formData, history: { ...formData.history, allergies: e.target.value } })}
+                      className="hospital-input w-full p-4 border-slate-200 focus:border-rose-500 bg-slate-50/30 text-sm"
+                      placeholder="e.g. penicillin"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-600 ml-1">Smoking</label>
+                    <select
+                      value={formData.history.smoking}
+                      onChange={(e) => setFormData({ ...formData, history: { ...formData.history, smoking: e.target.value } })}
+                      className="hospital-input w-full p-4 appearance-none bg-slate-50/30 border-slate-200 focus:border-rose-500"
+                    >
+                      <option value="unknown">Unknown</option>
+                      <option value="never">Never</option>
+                      <option value="former">Former</option>
+                      <option value="current">Current</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-600 ml-1">Alcohol</label>
+                    <select
+                      value={formData.history.alcohol}
+                      onChange={(e) => setFormData({ ...formData, history: { ...formData.history, alcohol: e.target.value } })}
+                      className="hospital-input w-full p-4 appearance-none bg-slate-50/30 border-slate-200 focus:border-rose-500"
+                    >
+                      <option value="unknown">Unknown</option>
+                      <option value="none">None</option>
+                      <option value="occasional">Occasional</option>
+                      <option value="regular">Regular</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <label className="text-xs font-semibold text-slate-600 ml-1">Family History</label>
+                    <textarea
+                      value={formData.history.familyHistory}
+                      onChange={(e) => setFormData({ ...formData, history: { ...formData.history, familyHistory: e.target.value } })}
+                      className="hospital-input w-full p-4 min-h-[90px] border-slate-200 focus:border-rose-500 bg-slate-50/30 text-sm leading-relaxed"
+                      placeholder="Relevant family health history"
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Upload - Disabled for Free Tier (No Storage) */}
               <div className="space-y-6 opacity-60">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center text-xs font-bold">4</div>
+                  <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center text-xs font-bold">5</div>
                   <h3 className="text-sm font-bold text-slate-800">Past Records or Prescription <span className="text-slate-400 font-normal ml-1">(Unavailable on Free Tier)</span></h3>
                 </div>
                 <div className="border-2 border-dashed border-slate-200 bg-slate-50/50 rounded-3xl p-8 text-center cursor-not-allowed relative overflow-hidden">
@@ -267,6 +357,12 @@ const handleSubmit = async (e: React.FormEvent) => {
                    {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "Analyze Health Details"}
                  </button>
               </div>
+
+              {submissionError && (
+                <div className="p-4 border border-rose-200 rounded-2xl bg-rose-50 text-rose-700 text-xs font-semibold">
+                  Submission failed: {submissionError}
+                </div>
+              )}
             </motion.form>
           </div>
         </div>

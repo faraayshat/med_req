@@ -5,7 +5,7 @@ import { auth, googleProvider } from "@/lib/firebase";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createServerSession } from "@/lib/auth-session-client";
+import { syncSessionForUser } from "@/lib/auth-client";
 import { Heart, Mail, Lock, Languages, ArrowRight, ShieldCheck, Activity } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -16,7 +16,7 @@ export default function Login() {
   const router = useRouter();
 
   const handleAuthSuccess = async (user: any) => {
-    await createServerSession(user);
+    await syncSessionForUser(user);
     router.push("/dashboard");
   };
 

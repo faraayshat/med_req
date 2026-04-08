@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { auth, db } from "@/lib/firebase";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy, limit, startAfter, QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { 
@@ -31,6 +31,9 @@ export default function RecordsPage() {
   const { user: authUser, loading: authLoading } = useAuth();
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([
@@ -54,10 +57,13 @@ export default function RecordsPage() {
         const q = query(
           collection(db, "reports"),
           where("userId", "==", authUser.uid),
-          orderBy("createdAt", "desc")
+          orderBy("createdAt", "desc"),
+          limit(20)
         );
         const querySnapshot = await getDocs(q);
         setReports(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        setLastDoc(querySnapshot.docs.length > 0 ? querySnapshot.docs[querySnapshot.docs.length - 1] : null);
+        setHasMore(querySnapshot.docs.length === 20);
       } catch (err) {
         console.error("Records error:", err);
       } finally {
@@ -67,6 +73,31 @@ export default function RecordsPage() {
 
     fetchReports();
   }, [authUser, authLoading, router]);
+
+  const loadMore = async () => {
+    if (!authUser || !lastDoc || !hasMore || loadingMore) {
+      return;
+    }
+
+    setLoadingMore(true);
+    try {
+      const q = query(
+        collection(db, "reports"),
+        where("userId", "==", authUser.uid),
+        orderBy("createdAt", "desc"),
+        startAfter(lastDoc),
+        limit(20)
+      );
+      const querySnapshot = await getDocs(q);
+      setReports((prev) => [...prev, ...querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))]);
+      setLastDoc(querySnapshot.docs.length > 0 ? querySnapshot.docs[querySnapshot.docs.length - 1] : null);
+      setHasMore(querySnapshot.docs.length === 20);
+    } catch (err) {
+      console.error("Load more records error:", err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const filteredReports = reports.filter(report => 
     (report.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -311,6 +342,18 @@ export default function RecordsPage() {
                     </div>
                   </motion.div>
                 ))}
+              </div>
+            )}
+
+            {hasMore && !searchTerm && (
+              <div className="flex justify-center pt-4">
+                <button
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  className="px-6 py-3 rounded-2xl border border-slate-200 bg-white text-xs font-black uppercase tracking-wider text-slate-600 hover:text-rose-600 hover:border-rose-200 transition-all disabled:opacity-60"
+                >
+                  {loadingMore ? "Loading..." : "Load More Records"}
+                </button>
               </div>
             )}
           </section>
