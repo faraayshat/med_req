@@ -6,6 +6,7 @@ import { analyzeFormSchema, formatZodIssues } from "@/lib/analyze-schema";
 import { verifySessionFromRequest } from "@/lib/auth-server";
 import { createRequestId, logEvent, safeErrorMessage } from "@/lib/observability";
 import { enforceRateLimit } from "@/lib/rate-limit";
+import { isTrustedSameOrigin, secureApiHeaders } from "@/lib/request-security";
 
 const MAX_BODY_BYTES = 32 * 1024;
 
@@ -26,9 +27,13 @@ export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
 
   try {
+    if (!isTrustedSameOrigin(request)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403, headers: secureApiHeaders({ "x-request-id": requestId }) });
+    }
+
     const session = await verifySessionFromRequest(request);
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: { "x-request-id": requestId } });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: secureApiHeaders({ "x-request-id": requestId }) });
     }
 
     const [userLimit, ipLimit] = await Promise.all([
@@ -45,6 +50,7 @@ export async function POST(request: NextRequest) {
           headers: {
             "retry-after": String(retryAfter),
             "x-request-id": requestId,
+            ...secureApiHeaders(),
           },
         }
       );
@@ -52,7 +58,7 @@ export async function POST(request: NextRequest) {
 
     const rawBody = await request.text();
     if (Buffer.byteLength(rawBody, "utf8") > MAX_BODY_BYTES) {
-      return NextResponse.json({ error: "Payload too large" }, { status: 413, headers: { "x-request-id": requestId } });
+      return NextResponse.json({ error: "Payload too large" }, { status: 413, headers: secureApiHeaders({ "x-request-id": requestId }) });
     }
 
     const parsedBody = JSON.parse(rawBody || "{}");
@@ -63,7 +69,7 @@ export async function POST(request: NextRequest) {
           error: "Validation failed",
           issues: formatZodIssues(parsed.error),
         },
-        { status: 400, headers: { "x-request-id": requestId } }
+        { status: 400, headers: secureApiHeaders({ "x-request-id": requestId }) }
       );
     }
 
@@ -81,7 +87,7 @@ export async function POST(request: NextRequest) {
             status: idem.status,
             idempotentReplay: true,
           },
-          { status: 202, headers: { "x-request-id": requestId } }
+          { status: 202, headers: secureApiHeaders({ "x-request-id": requestId }) }
         );
       }
     }
@@ -153,7 +159,7 @@ export async function POST(request: NextRequest) {
       },
       {
         status: 202,
-        headers: { "x-request-id": requestId },
+        headers: secureApiHeaders({ "x-request-id": requestId }),
       }
     );
   } catch (error) {
@@ -162,7 +168,7 @@ export async function POST(request: NextRequest) {
       ip,
       error: error instanceof Error ? error.message : "unknown",
     });
-    return NextResponse.json({ error: safeErrorMessage() }, { status: 500, headers: { "x-request-id": requestId } });
+    return NextResponse.json({ error: safeErrorMessage() }, { status: 500, headers: secureApiHeaders({ "x-request-id": requestId }) });
   }
 }
 

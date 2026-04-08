@@ -74,9 +74,12 @@ const handleSubmit = async (e: React.FormEvent) => {
       const idempotencyKey = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
       const response = await fetch("/api/analyze", {
         method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
         headers: { 
           "Content-Type": "application/json",
           "x-idempotency-key": idempotencyKey,
+          "X-Requested-With": "XMLHttpRequest",
         },
         body: JSON.stringify({
           formData,
