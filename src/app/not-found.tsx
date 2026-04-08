@@ -1,85 +1,88 @@
 "use client";
 
 import Link from "next/link";
-import { 
-  AlertCircle, 
-  ArrowLeft, 
-  Search, 
-  Home, 
-  Activity,
-  Heart
-} from "lucide-react";
+import { ArrowLeft, Home, Activity, ShieldCheck, Timer } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 antialiased">
-      <div className="max-w-md w-full text-center space-y-8">
-        
-        {/* Animated Icon Section */}
-        <div className="relative mx-auto w-32 h-32">
-          <motion.div 
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="absolute inset-0 bg-rose-100 rounded-[2.5rem] rotate-12"
-          />
-          <motion.div 
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="absolute inset-0 bg-white border-2 border-slate-200 rounded-[2.5rem] shadow-xl shadow-slate-200/50 flex items-center justify-center"
-          >
-            <div className="relative">
-              <Activity className="w-12 h-12 text-rose-500" />
-              <motion.div 
-                animate={{ 
-                  scale: [1, 1.2, 1],
-                  opacity: [0.5, 1, 0.5] 
-                }}
-                transition={{ 
-                  duration: 2, 
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-                className="absolute inset-0 bg-rose-500/20 blur-xl rounded-full"
-              />
+    <div className="relative min-h-screen overflow-hidden bg-slate-950 text-slate-100 antialiased">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(20,184,166,0.18),transparent_35%),radial-gradient(circle_at_80%_0%,rgba(59,130,246,0.2),transparent_38%),radial-gradient(circle_at_50%_90%,rgba(239,68,68,0.16),transparent_36%)]" />
+
+      <div className="relative mx-auto flex min-h-screen max-w-4xl items-center justify-center p-6">
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="w-full rounded-3xl border border-white/20 bg-slate-900/80 p-6 shadow-2xl shadow-teal-900/30 backdrop-blur-xl md:p-10"
+        >
+          <div className="grid gap-8 md:grid-cols-[1.1fr_0.9fr]">
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-2 rounded-full border border-teal-300/40 bg-teal-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-teal-200">
+                <Activity className="h-3.5 w-3.5" />
+                Critical Route Alert
+              </div>
+
+              <div className="space-y-3">
+                <h1 className="text-4xl font-black tracking-tight text-white md:text-5xl">404: Patient Record Not Found</h1>
+                <p className="max-w-xl text-sm leading-relaxed text-slate-300 md:text-base">
+                  This endpoint is not responding to current triage requests. The page may have moved, or the record link is outdated.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link
+                  href="/dashboard"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-teal-400 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-teal-300"
+                >
+                  <Home className="h-4 w-4" />
+                  Return To Dashboard
+                </Link>
+                <button
+                  onClick={() => window.history.back()}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-600 bg-slate-800/60 px-5 py-3 text-sm font-semibold text-slate-100 transition hover:bg-slate-700/70"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Go Back
+                </button>
+              </div>
             </div>
-          </motion.div>
-        </div>
 
-        {/* Text Content */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <span className="px-3 py-1 bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full">Error 404</span>
+            <div className="rounded-2xl border border-white/15 bg-slate-950/70 p-5">
+              <div className="mb-4 flex items-center justify-between text-xs uppercase tracking-[0.2em] text-slate-400">
+                <span>ER Console</span>
+                <span>Node 04</span>
+              </div>
+
+              <div className="space-y-4">
+                <motion.div
+                  animate={{ opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  className="h-1.5 w-full overflow-hidden rounded-full bg-slate-700"
+                >
+                  <div className="h-full w-2/3 rounded-full bg-rose-400" />
+                </motion.div>
+
+                <div className="grid gap-3 text-sm text-slate-300">
+                  <div className="flex items-center justify-between rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2">
+                    <span className="inline-flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-teal-300" />
+                      Session Integrity
+                    </span>
+                    <span className="font-semibold text-teal-300">Verified</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2">
+                    <span className="inline-flex items-center gap-2">
+                      <Timer className="h-4 w-4 text-amber-300" />
+                      Route Availability
+                    </span>
+                    <span className="font-semibold text-amber-300">Unavailable</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <h1 className="text-4xl font-[1000] text-slate-950 tracking-tighter">Clinical Link <span className="text-rose-600 italic">Severed.</span></h1>
-          <p className="text-slate-500 text-sm font-medium leading-relaxed px-4">
-            The medical record or clinical portal you are trying to access cannot be located on this node. It may have been relocated or archived.
-          </p>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col gap-3 pt-4">
-          <Link href="/dashboard" className="hospital-button-primary py-4 rounded-2xl flex items-center justify-center gap-3 text-xs font-black shadow-2xl shadow-rose-200 hover:scale-[1.02] active:scale-95 transition-all">
-            <Home className="w-4 h-4" />
-            Return to Dashboard
-          </Link>
-          
-          <button 
-            onClick={() => window.history.back()}
-            className="flex items-center justify-center gap-3 py-4 rounded-2xl bg-white border border-slate-200 text-slate-600 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 hover:text-slate-950 transition-all"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Previous Diagnostic State
-          </button>
-        </div>
-
-        {/* Footer Branding */}
-        <div className="pt-8 flex items-center justify-center gap-2 opacity-30 grayscale">
-          <Heart className="w-4 h-4 text-rose-600 fill-rose-600" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-950">Health Med Precision Node</span>
-        </div>
+        </motion.section>
       </div>
     </div>
   );

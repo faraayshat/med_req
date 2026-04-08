@@ -4,6 +4,8 @@ MedReq is a modern medical intake and analysis web application built with Next.j
 
 It allows authenticated users to submit symptoms and vitals, run server-side analysis workflows, and review structured results with citations and confidence signals.
 
+Current release: v0.1.0
+
 ## Leadership And Credits
 
 - Owner and Product Vision: Fara Aysha
@@ -26,7 +28,10 @@ Additional contributors can be found in CONTRIBUTORS.md.
 	- rate limiting
 	- idempotency key handling
 - Async analysis job flow (queued, processing, analyzed, failed).
+- Job recovery utilities (retry and queue drain endpoints).
 - Structured observability helpers and request IDs.
+- Export report PDF via server route.
+- Dashboard list performance improvements via report summary read model.
 - Optional prescription upload flow without Firebase Storage (Cloudinary-based).
 - Unit tests for schema and clinical scoring logic.
 
@@ -65,8 +70,16 @@ Additional contributors can be found in CONTRIBUTORS.md.
 	- Processes queued jobs and writes analysis output.
 - GET /api/analyze/[id]
 	- Returns report status for polling.
+- POST /api/analyze/retry
+	- Requeues a failed report for processing.
+- POST /api/analyze/drain
+	- Drains queued jobs in batches.
 - POST /api/uploads/prescription
 	- Optional upload endpoint when external upload is enabled.
+- GET /api/results/[id]/pdf
+	- Generates server-side PDF output for a report.
+- GET /api/metrics
+	- Returns service metrics (protected via API key).
 
 ## Local Setup
 
@@ -116,6 +129,12 @@ This project uses .env.local.
 ### Analysis Worker Security
 
 - ANALYZE_WORKER_SECRET
+- ANALYZE_DRAIN_BATCH_SIZE
+- ANALYZE_DRAIN_MAX_BATCHES
+
+### Metrics Endpoint
+
+- METRICS_API_KEY
 
 ### Optional External Prescription Upload
 
@@ -126,6 +145,15 @@ This project uses .env.local.
 - CLOUDINARY_API_KEY
 - CLOUDINARY_API_SECRET
 - CLOUDINARY_UPLOAD_FOLDER
+
+## Release Notes (v0.1.0)
+
+- Migrated auth verification to server-managed sessions.
+- Rebuilt analyze flow with strict schema validation and abuse protections.
+- Added asynchronous worker processing and queue recovery endpoints.
+- Added report summary denormalization for faster dashboard reads.
+- Added server PDF generation route for report exports.
+- Added baseline unit, integration, and E2E smoke tests.
 
 ## Prescription Upload Without Firebase Storage
 

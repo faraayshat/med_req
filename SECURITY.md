@@ -1,9 +1,12 @@
 # Security Policy
 
+Policy last updated: 2026-04-08
+
 ## Supported Versions
 
 | Version | Supported |
 | --- | --- |
+| main (unreleased) | Yes |
 | 0.1.x | Yes |
 | < 0.1.0 | No |
 
