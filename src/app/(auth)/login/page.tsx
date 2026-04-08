@@ -41,7 +41,6 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-white relative overflow-hidden">
-      {/* Branding Side - Hidden on Mobile */}
       <div className="hidden lg:flex lg:w-1/2 bg-slate-950 p-12 xl:p-20 flex-col justify-between relative overflow-hidden group">
          <div className="absolute top-0 right-0 w-[120%] h-[120%] bg-rose-600/5 rounded-full blur-[150px] -z-0" />
          <div className="absolute -bottom-20 -left-20 w-[60%] h-[60%] bg-emerald-500/5 rounded-full blur-[100px] -z-0" />
@@ -76,7 +75,6 @@ export default function Login() {
          </div>
       </div>
 
-      {/* Form Side */}
       <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-10 xl:p-16 relative bg-rose-50/10 overflow-y-auto">
         <motion.div 
           initial={{ opacity: 0, scale: 0.98 }}

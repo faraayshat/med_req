@@ -188,7 +188,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: safeErrorMessage() }, { status: 500 });
   } finally {
     void recordMetric({ route: "analyze.worker", status: metricStatus, durationMs: Date.now() - startedAt }).catch(() => {
-      // Metrics must never block worker execution.
     });
   }
 }

@@ -10,7 +10,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white text-slate-900 selection:bg-rose-100 selection:text-rose-900 overflow-x-hidden antialiased dark:bg-slate-950 dark:text-slate-100">
-      {/* Dynamic Navigation */}
       <nav className="fixed top-0 inset-x-0 z-[100] p-4 sm:p-6">
         <div className="max-w-4xl mx-auto grid grid-cols-[auto_1fr_auto] items-center gap-3 bg-white/90 backdrop-blur-md border border-slate-200/50 p-2 rounded-full shadow-sm dark:bg-slate-900/90 dark:border-slate-700/70 dark:shadow-none">
           <div className="flex items-center gap-2 group px-4">
@@ -50,7 +49,6 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero Section */}
       <main className="relative min-h-[85vh] flex flex-col items-center justify-center pt-20 px-6">
         <div className="max-w-3xl w-full flex flex-col items-center text-center space-y-6">
           <div className="inline-flex items-center gap-2 bg-slate-50 border border-slate-100 px-3 py-1 rounded-full">
@@ -86,7 +84,6 @@ export default function Home() {
             )}
           </div>
 
-          {/* Vitals Ribbon */}
           <div id="vitals" className="pt-12 grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
              {[
                { label: "Precision", value: "70%", sub: "Verified" },
@@ -107,7 +104,6 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Features Section */}
       <section id="features" className="py-20 px-6 bg-slate-50/50">
         <div className="max-w-4xl mx-auto flex flex-col items-center space-y-12">
           <div className="text-center space-y-3">
@@ -143,7 +139,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="py-12 px-6 border-t border-slate-100 bg-white">
         <div className="max-w-4xl mx-auto flex flex-col items-center space-y-8">
            <div className="flex items-center gap-2">

@@ -89,7 +89,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 selection:bg-rose-100 selection:text-rose-900 flex flex-col lg:flex-row antialiased">
-      {/* Precision Sidebar */}
       <aside className="hidden lg:flex w-20 xl:w-72 bg-white border-r border-slate-200 flex-col sticky top-0 h-screen transition-all duration-500 ease-in-out group/sidebar">
         <div className="p-6 xl:p-8 flex items-center gap-4">
           <div className="bg-rose-600 p-2.5 rounded-xl shadow-lg shadow-rose-200 group-hover/sidebar:rotate-[10deg] transition-transform">
@@ -115,9 +114,7 @@ export default function Dashboard() {
         
       </aside>
 
-      {/* Main Content Interface */}
       <main className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
-        {/* Navigation / Header */}
         <header className="h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200 px-6 xl:px-10 flex items-center justify-between shrink-0 sticky top-0 z-50">
           <div className="flex items-center gap-4">
             <div className="lg:hidden bg-rose-600 p-1.5 rounded-lg">
@@ -211,10 +208,8 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* Scrollable Viewport */}
         <div className="flex-1 overflow-y-auto p-6 xl:p-10 space-y-8 xl:space-y-12 lg:max-w-6xl xl:max-w-[1400px]">
           
-          {/* Welcome & Quick Action */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-2">
               <div className="flex items-center gap-2 px-2.5 py-0.5 bg-rose-50 border border-rose-100 rounded-full w-fit">
@@ -230,7 +225,6 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          {/* Vitals & Status Row */}
           <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div className="bg-slate-950 p-6 xl:p-8 rounded-[2rem] text-white relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-rose-600/20 rounded-full blur-[60px] group-hover:bg-rose-600/30 transition-all duration-700" />
@@ -287,7 +281,6 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* Records History Table-Style */}
           <section className="space-y-6 pb-8">
             <div className="flex items-center justify-between">
               <div className="space-y-1">

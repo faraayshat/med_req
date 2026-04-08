@@ -70,7 +70,6 @@ export default function AlertsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 selection:bg-rose-100 selection:text-rose-900 flex flex-col lg:flex-row antialiased">
-      {/* Precision Sidebar */}
       <aside className="hidden lg:flex w-20 xl:w-72 bg-white border-r border-slate-200 flex-col sticky top-0 h-screen transition-all duration-500 ease-in-out group/sidebar">
         <div className="p-6 xl:p-8 flex items-center gap-4">
           <div className="bg-rose-600 p-2.5 rounded-xl shadow-lg shadow-rose-200 group-hover/sidebar:rotate-[10deg] transition-transform">
@@ -105,9 +104,7 @@ export default function AlertsPage() {
         </div>
       </aside>
 
-      {/* Main Content Interface */}
       <main className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
-        {/* Navigation / Header */}
         <header className="h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200 px-6 xl:px-10 flex items-center justify-between shrink-0 sticky top-0 z-50">
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="p-1.5 hover:bg-slate-100 rounded-full transition-colors lg:hidden">
@@ -125,7 +122,6 @@ export default function AlertsPage() {
           </div>
         </header>
 
-        {/* Scrollable Viewport */}
         <div className="flex-1 overflow-y-auto p-6 xl:p-10 space-y-8 lg:max-w-4xl">
           
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">

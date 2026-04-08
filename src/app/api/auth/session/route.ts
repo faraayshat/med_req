@@ -20,7 +20,6 @@ export async function POST(request: NextRequest) {
       return secureJson({ error: "Missing idToken" }, { status: 400 });
     }
 
-    // Verify token first, then mint a server-managed Firebase session cookie.
     await adminAuth.verifyIdToken(idToken);
     const expiresIn = SESSION_COOKIE_MAX_AGE_SECONDS * 1000;
     const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });

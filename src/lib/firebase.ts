@@ -1,7 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, onAuthStateChanged, User } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc, collection, updateDoc, deleteDoc, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
-// import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -13,14 +12,11 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-// const storage = getStorage(app);
 const googleProvider = new GoogleAuthProvider();
 
-// User profile helper functions
 export const createUserProfile = async (user: User) => {
   if (!user) return;
   const userRef = doc(db, "users", user.uid);
@@ -43,7 +39,6 @@ export const createUserProfile = async (user: User) => {
   }
 };
 
-// Database Query Helpers
 export const getUserReports = async (userId: string) => {
   if (!userId) return [];
   const reportsRef = collection(db, "reports");

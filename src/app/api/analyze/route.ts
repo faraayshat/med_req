@@ -165,7 +165,6 @@ export async function POST(request: NextRequest) {
 
       clearTimeout(wakeTimeout);
     } catch {
-      // Worker can also be triggered by retry endpoint or scheduler if immediate wake-up fails.
     }
 
     logEvent("info", "analyze.enqueued", { requestId, reportId: reportRef.id, jobId: jobRef.id, uid: session.uid });
@@ -194,7 +193,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: safeErrorMessage() }, { status: 500, headers: secureApiHeaders({ "x-request-id": requestId }) });
   } finally {
     void recordMetric({ route: "analyze.enqueue", status: metricStatus, durationMs: Date.now() - startedAt }).catch(() => {
-      // Metrics must never block API response flow.
     });
   }
 }

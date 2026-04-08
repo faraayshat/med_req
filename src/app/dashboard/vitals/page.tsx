@@ -110,7 +110,6 @@ export default function VitalsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 selection:bg-rose-100 selection:text-rose-900 flex flex-col lg:flex-row antialiased">
-      {/* Precision Sidebar */}
       <aside className="hidden lg:flex w-20 xl:w-72 bg-white border-r border-slate-200 flex-col sticky top-0 h-screen transition-all duration-500 ease-in-out group/sidebar">
         <div className="p-6 xl:p-8 flex items-center gap-4">
           <div className="bg-rose-600 p-2.5 rounded-xl shadow-lg shadow-rose-200 group-hover/sidebar:rotate-[10deg] transition-transform">
@@ -149,9 +148,7 @@ export default function VitalsPage() {
         </div>
       </aside>
 
-      {/* Main Content Interface */}
       <main className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
-        {/* Navigation / Header */}
         <header className="h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200 px-6 xl:px-10 flex items-center justify-between shrink-0 sticky top-0 z-50">
           <div className="flex items-center gap-4">
             <Link href="/dashboard" className="p-1.5 hover:bg-slate-100 rounded-full transition-colors lg:hidden">
@@ -240,7 +237,6 @@ export default function VitalsPage() {
           </div>
         </header>
 
-        {/* Scrollable Viewport */}
         <div className="flex-1 overflow-y-auto p-6 xl:p-10 space-y-8 lg:max-w-6xl xl:max-w-[1400px]">
           
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -259,7 +255,6 @@ export default function VitalsPage() {
             </Link>
           </div>
 
-          {/* Vitals Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {vitals.map((vital, idx) => (
               <motion.div
@@ -294,7 +289,6 @@ export default function VitalsPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Detailed Activity Graph Placeholder */}
             <div className="lg:col-span-2 bg-slate-950 p-8 rounded-[2.5rem] text-white relative overflow-hidden group h-fit">
               <div className="absolute top-0 right-0 w-[50%] h-[100%] bg-rose-600/20 rounded-full blur-[100px] group-hover:bg-rose-600/30 transition-all duration-1000" />
               <div className="relative z-10 space-y-6">
@@ -338,7 +332,6 @@ export default function VitalsPage() {
               </div>
             </div>
 
-            {/* Recent Assessments Sidebar */}
             <div className="space-y-6">
                <div className="flex items-center justify-between">
                   <h3 className="text-sm font-black text-slate-950 uppercase tracking-widest">Timeline</h3>

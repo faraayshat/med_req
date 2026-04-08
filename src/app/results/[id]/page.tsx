@@ -260,7 +260,6 @@ export default function Results() {
       <div className="flex-1 w-full p-6 lg:p-12 overflow-y-auto">
         <div className="max-w-5xl mx-auto space-y-8">
           
-          {/* Header */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-4">
               <Link 
@@ -314,9 +313,7 @@ export default function Results() {
 
           <div id="report-content" className="grid grid-cols-1 lg:grid-cols-12 gap-8 p-1">
             
-            {/* Left Column: Stats & Vitals */}
             <div className="lg:col-span-4 space-y-6">
-              {/* Profile Card */}
               <div className="bg-white border border-slate-200 rounded-[2rem] p-8 shadow-sm space-y-6">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-xl font-bold">
@@ -340,7 +337,6 @@ export default function Results() {
                 </div>
               </div>
 
-              {/* BMI Card */}
               <div className="bg-rose-500 rounded-[2rem] p-8 text-white shadow-xl shadow-rose-200 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl rounded-full translate-x-10 -translate-y-10" />
                 <div className="relative z-10 space-y-4">
@@ -358,7 +354,6 @@ export default function Results() {
                 </div>
               </div>
 
-              {/* Attached Prescription/Record */}
               {report.fileUrl && (
                 <a href={report.fileUrl} target="_blank" rel="noopener noreferrer" className="block bg-slate-900 rounded-[2rem] p-8 text-white group hover:bg-slate-800 transition-colors shadow-sm">
                   <div className="flex items-center justify-between mb-6">
@@ -371,9 +366,7 @@ export default function Results() {
               )}
             </div>
 
-            {/* Right Column: Findings & Advice */}
             <div className="lg:col-span-8 space-y-8">
-              {/* Analysis Section */}
               <div className="bg-white border border-slate-200 rounded-[2.5rem] p-10 shadow-sm space-y-8">
                 <div className="space-y-2">
                   <h3 className="text-xl font-bold text-slate-900">Current Health Analysis</h3>
@@ -393,7 +386,6 @@ export default function Results() {
                 </div>
               </div>
 
-              {/* Recommendations Section */}
               <div className="bg-white border border-slate-200 rounded-[2.5rem] p-10 shadow-sm space-y-8">
                 <div className="flex items-center justify-between">
                   <div className="space-y-2">
@@ -476,7 +468,6 @@ export default function Results() {
                 </div>
               </div>
 
-              {/* Disclaimer */}
               <div className="p-8 bg-slate-100 rounded-3xl border border-slate-200 flex gap-6">
                 <div className="bg-white p-3 rounded-2xl h-fit border border-slate-200 shadow-sm"><Info className="w-5 h-5 text-slate-400" /></div>
                 <div className="space-y-1">

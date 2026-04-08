@@ -30,17 +30,14 @@ async function hasValidSession(request: NextRequest) {
 export async function proxy(request: NextRequest) {
   const sessionIsValid = await hasValidSession(request);
 
-  // Define protected routes
   const isDashboard = request.nextUrl.pathname.startsWith('/dashboard');
   const isResults = request.nextUrl.pathname.startsWith('/results');
   const isAuthPage = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup');
 
-  // If user is not logged in and tries to access protected routes
   if ((isDashboard || isResults) && !sessionIsValid) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // If user is logged in and tries to access auth pages
   if (isAuthPage && sessionIsValid) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }

@@ -64,7 +64,6 @@ export default function ProfileSettings() {
 
     const fetchProfileData = async () => {
       try {
-        // Fetch User Profile
         const userDoc = await getDoc(doc(db, "users", authUser.uid));
         if (userDoc.exists()) {
           const data = userDoc.data();
@@ -83,7 +82,6 @@ export default function ProfileSettings() {
           });
         }
 
-        // Fetch History (Simplified: fetching recent reports as history)
         const q = query(
           collection(db, "reportSummaries"),
           where("userId", "==", authUser.uid),
@@ -114,12 +112,10 @@ export default function ProfileSettings() {
     setMessage({ type: "", text: "" });
 
     try {
-      // 1. Update Firebase Auth Profile
       await updateProfile(authUser, {
         displayName: formData.fullName
       });
 
-      // 2. Update Firestore User Document
       await updateDoc(doc(db, "users", authUser.uid), {
         fullName: formData.fullName,
         bio: formData.bio,
@@ -150,7 +146,6 @@ export default function ProfileSettings() {
 
   return (
     <div className="min-h-screen bg-slate-50 selection:bg-rose-100 selection:text-rose-900 flex flex-col lg:flex-row antialiased">
-      {/* Precision Sidebar */}
       <aside className="hidden lg:flex w-20 xl:w-72 bg-white border-r border-slate-200 flex-col sticky top-0 h-screen transition-all duration-500 ease-in-out group/sidebar">
         <div className="p-6 xl:p-8 flex items-center gap-4">
           <div className="bg-rose-600 p-2.5 rounded-xl shadow-lg shadow-rose-200 group-hover/sidebar:rotate-[10deg] transition-transform">
@@ -289,7 +284,6 @@ export default function ProfileSettings() {
         <div className="flex-1 overflow-y-auto p-6 xl:p-10 space-y-8">
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
             
-            {/* Profile Editing Section */}
             <div className="xl:col-span-2 space-y-6">
               <div className="space-y-3">
                 <div className="flex items-center gap-2 px-2.5 py-0.5 bg-rose-50 border border-rose-100 rounded-full w-fit">
@@ -311,7 +305,6 @@ export default function ProfileSettings() {
                 
                 <form onSubmit={handleUpdate} className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
                   <div className="space-y-5">
-                    {/* Name Field */}
                     <div className="space-y-1.5">
                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-3">Full Legal Name</p>
                       <div className="relative group">
@@ -327,7 +320,6 @@ export default function ProfileSettings() {
                       </div>
                     </div>
 
-                    {/* Phone Field */}
                     <div className="space-y-1.5">
                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-3">Emergency Contact</p>
                       <div className="relative group">
@@ -344,7 +336,6 @@ export default function ProfileSettings() {
                   </div>
 
                   <div className="space-y-5">
-                    {/* Bio/Description */}
                     <div className="space-y-1.5">
                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-3">Medical Note / Bio</p>
                       <div className="relative group">
@@ -394,7 +385,6 @@ export default function ProfileSettings() {
               </motion.div>
             </div>
 
-            {/* History Section */}
             <div className="space-y-8">
               <div className="space-y-2">
                 <h3 className="text-2xl font-[1000] text-slate-950 tracking-tighter uppercase italic flex items-center gap-3">

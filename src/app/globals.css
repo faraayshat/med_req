@@ -79,7 +79,6 @@ html.dark[data-theme="dark"] {
     overflow: hidden;
   }
 
-  /* Convert internal app scroll containers into document flow so Lenis controls full-page scrolling. */
   html.lenis main.h-screen.overflow-hidden {
     height: auto !important;
     min-height: 100vh;
@@ -131,7 +130,6 @@ html.dark[data-theme="dark"] {
     background: linear-gradient(180deg, var(--scroll-thumb-hover), var(--scroll-thumb-hover-deep));
   }
 
-  /* Dark-mode compatibility layer for pages that still use fixed light utility classes. */
   html.dark[data-theme="dark"] .bg-white {
     background-color: var(--surface-1) !important;
   }

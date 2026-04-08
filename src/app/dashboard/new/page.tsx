@@ -130,7 +130,6 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   return (
     <div className="min-h-screen bg-rose-50/20 flex flex-col">
-      {/* Navigation Bar */}
       <nav className="bg-white border-b border-slate-100 p-6 flex justify-between items-center sticky top-0 z-50">
         <div className="flex items-center gap-6">
           <button 
@@ -154,7 +153,6 @@ const handleSubmit = async (e: React.FormEvent) => {
       <div className="flex-1 w-full flex flex-col items-center p-6 lg:p-12 overflow-y-auto">
         <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
           
-          {/* Info Sidebar */}
           <div className="lg:col-span-4 space-y-6 sticky top-0 h-fit">
             <div className="bg-white border-slate-200 border rounded-3xl p-8 space-y-6 shadow-sm">
                <div className="space-y-1">
@@ -181,7 +179,6 @@ const handleSubmit = async (e: React.FormEvent) => {
             </div>
           </div>
 
-          {/* Form Content */}
           <div className="lg:col-span-8">
             <motion.form
               initial={{ opacity: 0, y: 10 }}
@@ -194,7 +191,6 @@ const handleSubmit = async (e: React.FormEvent) => {
                 <p className="text-slate-500 text-sm">Please provide your details for a personalized medical review.</p>
               </div>
 
-              {/* Patient Profile */}
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-xs font-bold">1</div>
@@ -225,7 +221,6 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </div>
               </div>
 
-              {/* Vitals */}
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-xs font-bold">2</div>
@@ -258,7 +253,6 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </div>
               </div>
 
-              {/* Rationale */}
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-xs font-bold">3</div>
@@ -280,7 +274,6 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </div>
               </div>
 
-              {/* Medical History */}
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-xs font-bold">4</div>
@@ -356,7 +349,6 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </div>
               </div>
 
-              {/* Prescription Upload */}
               <div className={`space-y-6 ${uploadsEnabled ? "" : "opacity-60"}`}>
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center text-xs font-bold">5</div>
