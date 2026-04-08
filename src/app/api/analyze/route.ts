@@ -140,13 +140,21 @@ export async function POST(request: NextRequest) {
 
     const workerToken = process.env.ANALYZE_WORKER_SECRET;
     const workerUrl = new URL("/api/analyze/worker", request.nextUrl.origin);
-    void fetch(workerUrl, {
-      method: "POST",
-      headers: workerToken ? { "x-worker-token": workerToken } : {},
-      cache: "no-store",
-    }).catch(() => {
-      // Worker can also be triggered by scheduler if this immediate wake-up fails.
-    });
+    try {
+      const wakeController = new AbortController();
+      const wakeTimeout = setTimeout(() => wakeController.abort(), 1500);
+
+      await fetch(workerUrl, {
+        method: "POST",
+        headers: workerToken ? { "x-worker-token": workerToken } : {},
+        cache: "no-store",
+        signal: wakeController.signal,
+      });
+
+      clearTimeout(wakeTimeout);
+    } catch {
+      // Worker can also be triggered by retry endpoint or scheduler if immediate wake-up fails.
+    }
 
     logEvent("info", "analyze.enqueued", { requestId, reportId: reportRef.id, jobId: jobRef.id, uid: session.uid });
 
@@ -156,6 +164,8 @@ export async function POST(request: NextRequest) {
         reportId: reportRef.id,
         jobId: jobRef.id,
         status: "pending",
+        estimatedSecondsMin: 10,
+        estimatedSecondsMax: 45,
       },
       {
         status: 202,

@@ -28,6 +28,8 @@ export default function Results() {
   const [downloading, setDownloading] = useState(false);
   const [status, setStatus] = useState<string>("pending");
   const [cachedPdf, setCachedPdf] = useState<File | null>(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [retryTriggered, setRetryTriggered] = useState(false);
 
   const generatePdfFile = async () => {
     if (cachedPdf) {
@@ -105,6 +107,7 @@ export default function Results() {
 
   useEffect(() => {
     let pollTimer: ReturnType<typeof setInterval> | null = null;
+    let elapsedTimer: ReturnType<typeof setInterval> | null = null;
 
     const fetchReport = async () => {
       try {
@@ -114,6 +117,9 @@ export default function Results() {
           const data = docSnap.data();
           setReport(data);
           setStatus(data.status || "pending");
+
+          const createdMs = data.createdAt?.seconds ? data.createdAt.seconds * 1000 : Date.now();
+          setElapsedSeconds(Math.max(0, Math.floor((Date.now() - createdMs) / 1000)));
 
           if ((data.status || "pending") === "pending" && !pollTimer) {
             pollTimer = setInterval(fetchReport, 4000);
@@ -133,14 +139,43 @@ export default function Results() {
 
     if (searchParams.get("pending") === "1") {
       pollTimer = setInterval(fetchReport, 4000);
+      elapsedTimer = setInterval(() => {
+        setElapsedSeconds((prev) => prev + 1);
+      }, 1000);
     }
 
     return () => {
       if (pollTimer) {
         clearInterval(pollTimer);
       }
+      if (elapsedTimer) {
+        clearInterval(elapsedTimer);
+      }
     };
   }, [id, searchParams]);
+
+  useEffect(() => {
+    if (status !== "pending" || retryTriggered || elapsedSeconds < 25) {
+      return;
+    }
+
+    const wakeWorker = async () => {
+      try {
+        await fetch("/api/analyze/retry", {
+          method: "POST",
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+          },
+        });
+      } finally {
+        setRetryTriggered(true);
+      }
+    };
+
+    void wakeWorker();
+  }, [status, elapsedSeconds, retryTriggered]);
 
   if (loading) {
     return (
@@ -230,7 +265,10 @@ export default function Results() {
           {status === "pending" && (
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3">
               <Loader2 className="w-4 h-4 text-amber-600 animate-spin" />
-              <p className="text-xs font-semibold text-amber-700">Analysis is still running. This page auto-refreshes every few seconds.</p>
+              <p className="text-xs font-semibold text-amber-700">
+                Analysis is still running. Typical setup time is 10-45 seconds. Elapsed: {elapsedSeconds}s.
+                {elapsedSeconds > 45 ? " Processing is taking longer than usual; worker wake-up retry has been triggered." : " This page auto-refreshes every few seconds."}
+              </p>
             </div>
           )}
 
