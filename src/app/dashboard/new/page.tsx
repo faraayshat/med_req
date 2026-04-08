@@ -28,6 +28,7 @@ export default function NewReport() {
   const [loading, setLoading] = useState(false);
   const [submissionError, setSubmissionError] = useState("");
   const router = useRouter();
+  const uploadsEnabled = process.env.NEXT_PUBLIC_ENABLE_PRESCRIPTION_UPLOAD === "true";
 
   const [formData, setFormData] = useState({
     name: "",
@@ -71,6 +72,29 @@ const handleSubmit = async (e: React.FormEvent) => {
     setLoading(true);
 
     try {
+      let uploadedPrescription: Record<string, unknown> = {};
+      if (file && uploadsEnabled) {
+        const uploadBody = new FormData();
+        uploadBody.append("file", file);
+
+        const uploadResponse = await fetch("/api/uploads/prescription", {
+          method: "POST",
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+          },
+          body: uploadBody,
+        });
+
+        if (!uploadResponse.ok) {
+          const uploadError = await uploadResponse.json();
+          throw new Error(uploadError.error || "Prescription upload failed");
+        }
+
+        uploadedPrescription = await uploadResponse.json();
+      }
+
       const idempotencyKey = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
       const response = await fetch("/api/analyze", {
         method: "POST",
@@ -82,7 +106,10 @@ const handleSubmit = async (e: React.FormEvent) => {
           "X-Requested-With": "XMLHttpRequest",
         },
         body: JSON.stringify({
-          formData,
+          formData: {
+            ...formData,
+            ...uploadedPrescription,
+          },
         }),
       });
 
@@ -329,21 +356,38 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </div>
               </div>
 
-              {/* Upload - Disabled for Free Tier (No Storage) */}
-              <div className="space-y-6 opacity-60">
+              {/* Prescription Upload */}
+              <div className={`space-y-6 ${uploadsEnabled ? "" : "opacity-60"}`}>
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center text-xs font-bold">5</div>
-                  <h3 className="text-sm font-bold text-slate-800">Past Records or Prescription <span className="text-slate-400 font-normal ml-1">(Unavailable on Free Tier)</span></h3>
+                  <h3 className="text-sm font-bold text-slate-800">
+                    Past Records or Prescription
+                    {!uploadsEnabled && <span className="text-slate-400 font-normal ml-1">(Disabled)</span>}
+                  </h3>
                 </div>
-                <div className="border-2 border-dashed border-slate-200 bg-slate-50/50 rounded-3xl p-8 text-center cursor-not-allowed relative overflow-hidden">
+                <div className={`border-2 border-dashed border-slate-200 bg-slate-50/50 rounded-3xl p-8 text-center relative overflow-hidden ${uploadsEnabled ? "" : "cursor-not-allowed"}`}>
                   <div className="space-y-4 relative z-10 flex flex-col items-center">
                     <div className="p-5 rounded-2xl bg-slate-200 text-slate-500">
                       <ShieldCheck className="w-6 h-6" />
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-base font-bold text-slate-800 italic">File Uploading Disabled</p>
-                      <p className="text-xs text-slate-500 italic">Connect a Storage Bucket to enable this feature</p>
-                    </div>
+
+                    {uploadsEnabled ? (
+                      <div className="space-y-2 w-full max-w-sm">
+                        <p className="text-base font-bold text-slate-800 italic">Upload Prescription (Optional)</p>
+                        <p className="text-xs text-slate-500 italic">Accepted: PDF, PNG, JPG, WEBP (max 5MB)</p>
+                        <input
+                          type="file"
+                          accept="application/pdf,image/png,image/jpeg,image/webp"
+                          onChange={handleFileChange}
+                          className="block w-full text-xs text-slate-600 file:mr-3 file:rounded-full file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-xs file:font-bold file:text-white hover:file:bg-rose-600"
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <p className="text-base font-bold text-slate-800 italic">File Uploading Disabled</p>
+                        <p className="text-xs text-slate-500 italic">Set NEXT_PUBLIC_ENABLE_PRESCRIPTION_UPLOAD=true to enable external upload</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

@@ -58,6 +58,10 @@ export const analyzeFormSchema = z.object({
   heartRate: optionalNumber(30, 220),
   bloodOxygen: optionalNumber(50, 100),
   temperature: optionalNumber(86, 113),
+  fileUrl: z.string().url().optional(),
+  fileName: z.string().trim().max(260).optional(),
+  fileContentType: z.string().trim().max(120).optional(),
+  fileSizeBytes: optionalNumber(1, 5 * 1024 * 1024),
   history: z
     .object({
       existingConditions: stringList,
