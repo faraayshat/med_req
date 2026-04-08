@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:integration": "vitest run src/**/*.integration.test.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "backfill:report-summaries": "node --env-file=.env.local scripts/backfill-report-summaries.mjs"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
