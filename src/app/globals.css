@@ -2,6 +2,8 @@
 
 @config "../../tailwind.config.js";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-hospital-50: #fff1f2;
   --color-hospital-100: #ffe4e6;
@@ -15,10 +17,153 @@
   --radius-hospital: 2.5rem;
 }
 
+:root {
+  --surface-0: #ffffff;
+  --surface-1: #f8fafc;
+  --surface-2: #eef2ff;
+  --text-0: #0f172a;
+  --text-1: #334155;
+  --border-soft: #e2e8f0;
+  --accent: #e11d48;
+  --accent-strong: #be123c;
+  --scroll-track: #f1f5f9;
+  --scroll-thumb: #cbd5e1;
+  --scroll-thumb-deep: #94a3b8;
+  --scroll-thumb-hover: #f43f5e;
+  --scroll-thumb-hover-deep: #e11d48;
+}
+
+html.dark[data-theme="dark"] {
+  --surface-0: #0b1020;
+  --surface-1: #121a2e;
+  --surface-2: #1a2540;
+  --text-0: #e8eefc;
+  --text-1: #b8c3df;
+  --border-soft: #2d3a5d;
+  --accent: #ff6b8a;
+  --accent-strong: #ff4d73;
+  --scroll-track: #121a2e;
+  --scroll-thumb: #33456f;
+  --scroll-thumb-deep: #2a395d;
+  --scroll-thumb-hover: #ff6b8a;
+  --scroll-thumb-hover-deep: #ff4d73;
+}
+
 @layer base {
+  html,
   body {
-    @apply bg-white text-slate-900 antialiased;
+    background: var(--surface-0);
+    color: var(--text-0);
+  }
+
+  html:not(.dark),
+  html:not(.dark) body {
+    background-color: #ffffff;
+    color: #0f172a;
+  }
+
+  body {
+    @apply antialiased transition-colors duration-300;
+    background: var(--surface-0);
+    color: var(--text-0);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: var(--scroll-track);
+    border-radius: 999px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--scroll-thumb), var(--scroll-thumb-deep));
+    border-radius: 999px;
+    border: 2px solid var(--scroll-track);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--scroll-thumb-hover), var(--scroll-thumb-hover-deep));
+  }
+
+  /* Dark-mode compatibility layer for pages that still use fixed light utility classes. */
+  html.dark[data-theme="dark"] .bg-white {
+    background-color: var(--surface-1) !important;
+  }
+
+  html.dark[data-theme="dark"] .bg-white\/90,
+  html.dark[data-theme="dark"] .bg-white\/80,
+  html.dark[data-theme="dark"] .bg-white\/70,
+  html.dark[data-theme="dark"] .bg-white\/60,
+  html.dark[data-theme="dark"] .bg-white\/50,
+  html.dark[data-theme="dark"] .bg-white\/40,
+  html.dark[data-theme="dark"] .bg-white\/30,
+  html.dark[data-theme="dark"] .bg-white\/20,
+  html.dark[data-theme="dark"] .bg-white\/10 {
+    background-color: color-mix(in srgb, var(--surface-1) 88%, transparent) !important;
+  }
+
+  html.dark[data-theme="dark"] .bg-slate-50,
+  html.dark[data-theme="dark"] .bg-slate-50\/50 {
+    background-color: #141d33 !important;
+  }
+
+  html.dark[data-theme="dark"] .bg-slate-100 {
+    background-color: #1b2741 !important;
+  }
+
+  html.dark[data-theme="dark"] .bg-slate-950 {
+    background-color: #070b18 !important;
+  }
+
+  html.dark[data-theme="dark"] .text-slate-950 {
+    color: #e8eefc !important;
+  }
+
+  html.dark[data-theme="dark"] .text-slate-900 {
+    color: #d8e2fa !important;
+  }
+
+  html.dark[data-theme="dark"] .text-slate-600,
+  html.dark[data-theme="dark"] .text-slate-500,
+  html.dark[data-theme="dark"] .text-slate-400 {
+    color: #9fb0d6 !important;
+  }
+
+  html.dark[data-theme="dark"] .border-slate-200,
+  html.dark[data-theme="dark"] .border-slate-100,
+  html.dark[data-theme="dark"] .border-slate-50 {
+    border-color: var(--border-soft) !important;
+  }
+
+  html.dark[data-theme="dark"] .border-slate-200\/50,
+  html.dark[data-theme="dark"] .border-slate-100\/50,
+  html.dark[data-theme="dark"] .border-slate-50\/50 {
+    border-color: color-mix(in srgb, var(--border-soft) 70%, transparent) !important;
+  }
+
+  html.dark[data-theme="dark"] .shadow-slate-200,
+  html.dark[data-theme="dark"] .shadow-slate-200\/50 {
+    --tw-shadow-color: rgba(0, 0, 0, 0.45) !important;
+  }
+
+  html.dark[data-theme="dark"] .shadow-sm,
+  html.dark[data-theme="dark"] .shadow,
+  html.dark[data-theme="dark"] .shadow-md,
+  html.dark[data-theme="dark"] .shadow-lg,
+  html.dark[data-theme="dark"] .shadow-xl,
+  html.dark[data-theme="dark"] .shadow-2xl,
+  html.dark[data-theme="dark"] .shadow-hospital,
+  html.dark[data-theme="dark"] .shadow-hospital-btn {
+    box-shadow: none !important;
   }
 }
 

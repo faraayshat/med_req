@@ -3,28 +3,32 @@
 import Link from 'next/link';
 import { Heart, Activity, ShieldCheck, ClipboardPlus, Stethoscope, ChevronRight, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/components/providers/AuthProvider';
+import ThemeSelector from '@/components/theme/ThemeSelector';
 
 export default function Home() {
   const { user, loading } = useAuth();
 
   return (
-    <div className="min-h-screen bg-white selection:bg-rose-100 selection:text-rose-900 overflow-x-hidden antialiased text-slate-900">
+    <div className="min-h-screen bg-white text-slate-900 selection:bg-rose-100 selection:text-rose-900 overflow-x-hidden antialiased dark:bg-slate-950 dark:text-slate-100">
       {/* Dynamic Navigation */}
       <nav className="fixed top-0 inset-x-0 z-[100] p-4 sm:p-6">
-        <div className="max-w-4xl mx-auto flex items-center justify-between bg-white/90 backdrop-blur-md border border-slate-200/50 p-2 rounded-full shadow-sm">
+        <div className="max-w-4xl mx-auto grid grid-cols-[auto_1fr_auto] items-center gap-3 bg-white/90 backdrop-blur-md border border-slate-200/50 p-2 rounded-full shadow-sm dark:bg-slate-900/90 dark:border-slate-700/70 dark:shadow-none">
           <div className="flex items-center gap-2 group px-4">
             <div className="bg-rose-600 p-1.5 rounded-lg flex items-center justify-center">
               <Heart className="w-4 h-4 text-white fill-white/20" />
             </div>
-            <span className="text-sm font-bold tracking-tighter uppercase italic">Health<span className="text-rose-600">Med</span></span>
+            <span className="text-sm font-bold tracking-tighter uppercase italic text-slate-900 dark:text-slate-100">Health<span className="text-rose-600 dark:text-rose-400">Med</span></span>
           </div>
           
-          <div className="hidden md:flex items-center gap-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-             <Link href="#features" className="hover:text-rose-600 transition-colors">Features</Link>
-             <Link href="#vitals" className="hover:text-rose-600 transition-colors">Vitals</Link>
+          <div className="hidden md:flex items-center justify-center gap-6 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-300">
+             <Link href="#features" className="hover:text-rose-600 dark:hover:text-rose-400 transition-colors">Features</Link>
+             <Link href="#vitals" className="hover:text-rose-600 dark:hover:text-rose-400 transition-colors">Vitals</Link>
           </div>
 
-          <div className="flex items-center gap-2 pr-1">
+          <div className="flex items-center justify-end gap-2 pr-1">
+            <div className="hidden lg:block">
+              <ThemeSelector compact />
+            </div>
             {!loading && (
               user ? (
                 <Link href="/dashboard" className="bg-rose-600 text-white px-4 py-2 text-[10px] font-bold rounded-full hover:bg-rose-700 transition-all flex items-center gap-2">
@@ -33,7 +37,7 @@ export default function Home() {
                 </Link>
               ) : (
                 <>
-                  <Link href="/login" className="text-[10px] font-bold uppercase text-slate-500 px-3 py-2 hover:text-rose-600 transition-colors">
+                  <Link href="/login" className="text-[10px] font-bold uppercase text-slate-500 px-3 py-2 hover:text-rose-600 dark:hover:text-rose-400 transition-colors dark:text-slate-300">
                     Login
                   </Link>
                   <Link href="/signup" className="bg-rose-600 text-white px-5 py-2 text-[10px] font-bold rounded-full hover:bg-rose-700 transition-all">
