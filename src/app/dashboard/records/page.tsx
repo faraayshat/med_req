@@ -303,7 +303,7 @@ export default function RecordsPage() {
                     key={report.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    whileHover={{ scale: 1.005, backgroundColor: '#ffffff' }}
+                    whileHover={{ scale: 1.005 }}
                     className="group bg-white/40 border border-slate-100 p-5 xl:p-6 rounded-[2rem] hover:shadow-2xl hover:shadow-slate-200/50 hover:border-white transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-5 overflow-hidden relative"
                   >
                     <div className="absolute top-0 right-0 w-24 h-24 bg-rose-50/30 rounded-bl-[3rem] translate-x-8 -translate-y-8 group-hover:translate-x-6 group-hover:-translate-y-6 transition-transform" />

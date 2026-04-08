@@ -308,7 +308,7 @@ export default function Dashboard() {
                 {reports.map((report) => (
                   <motion.div
                     key={report.id}
-                    whileHover={{ scale: 1.005, backgroundColor: '#ffffff' }}
+                    whileHover={{ scale: 1.005 }}
                     className="group bg-white/20 border border-slate-100 p-5 xl:p-7 rounded-[1.8rem] hover:shadow-2xl hover:shadow-slate-200/50 hover:border-white transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-6"
                   >
                     <div className="flex items-center gap-5">
