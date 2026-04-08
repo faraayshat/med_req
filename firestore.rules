@@ -8,6 +8,13 @@ service cloud.firestore {
       allow read: if request.auth != null && (resource.data.userId == request.auth.uid);
       allow update, delete: if request.auth != null && (resource.data.userId == request.auth.uid);
     }
+
+    match /reportSummaries/{reportId} {
+      // Summaries are user-scoped lightweight dashboard docs.
+      allow read: if request.auth != null && (resource.data.userId == request.auth.uid);
+      // Writes are expected from trusted server/admin flow only.
+      allow create, update, delete: if false;
+    }
     
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;

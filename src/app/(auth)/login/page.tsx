@@ -101,6 +101,7 @@ export default function Login() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    suppressHydrationWarning
                   />
                 </div>
               </div>
@@ -119,6 +120,7 @@ export default function Login() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    suppressHydrationWarning
                   />
                 </div>
               </div>
@@ -130,7 +132,7 @@ export default function Login() {
                 </div>
               )}
 
-              <button type="submit" className="hospital-button-primary w-full py-4 xl:py-5 text-lg xl:text-xl group rounded-full shadow-2xl shadow-rose-200 hover:shadow-rose-400/40">
+              <button type="submit" className="hospital-button-primary w-full py-4 xl:py-5 text-lg xl:text-xl group rounded-full shadow-2xl shadow-rose-200 hover:shadow-rose-400/40" suppressHydrationWarning>
                 Login
                 <ArrowRight className="w-5 h-5 xl:w-6 xl:h-6 group-hover:translate-x-2 transition-transform duration-500" />
               </button>
@@ -141,7 +143,7 @@ export default function Login() {
               <div className="relative flex justify-center text-[8px] xl:text-[9px] uppercase font-black tracking-[0.3em]"><span className="bg-white/80 px-4 xl:px-6 text-slate-300 italic backdrop-blur-sm">Other Platforms</span></div>
             </div>
 
-            <button onClick={handleGoogleLogin} className="w-full flex items-center justify-center gap-3 xl:gap-4 p-3.5 xl:p-5 border-2 border-slate-100 rounded-full font-[1000] text-slate-950 uppercase tracking-[0.2em] text-[9px] xl:text-[11px] hover:bg-slate-50 hover:border-slate-200 hover:shadow-xl hover:shadow-slate-100 transition-all duration-300 group">
+            <button onClick={handleGoogleLogin} className="w-full flex items-center justify-center gap-3 xl:gap-4 p-3.5 xl:p-5 border-2 border-slate-100 rounded-full font-[1000] text-slate-950 uppercase tracking-[0.2em] text-[9px] xl:text-[11px] hover:bg-slate-50 hover:border-slate-200 hover:shadow-xl hover:shadow-slate-100 transition-all duration-300 group" suppressHydrationWarning>
               <svg className="w-3.5 h-3.5 xl:w-4.5 xl:h-4.5 transition-transform group-hover:scale-110" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
