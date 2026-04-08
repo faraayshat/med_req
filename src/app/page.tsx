@@ -149,9 +149,9 @@ export default function Home() {
               <span className="text-lg font-bold tracking-tighter uppercase italic">Health<span className="text-rose-600">Med</span></span>
            </div>
            <div className="flex gap-8 text-[9px] font-bold uppercase tracking-widest text-slate-400">
-              <Link href="#" className="hover:text-rose-600">Privacy</Link>
-              <Link href="#" className="hover:text-rose-600">Security</Link>
-              <Link href="#" className="hover:text-rose-600">Terms</Link>
+              <Link href="/privacy" className="hover:text-rose-600">Privacy</Link>
+              <Link href="/security" className="hover:text-rose-600">Security</Link>
+              <Link href="/terms" className="hover:text-rose-600">Terms</Link>
            </div>
            <p className="text-slate-400 text-[9px] font-medium italic">&copy; 2026 HealthMed. Clinical Standards Verified.</p>
         </div>
