@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
 import ThemeDock from "@/components/theme/ThemeDock";
 
 const geistSans = Geist({
@@ -28,15 +29,18 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
-          <AuthProvider>
-            {children}
-            <ThemeDock />
-          </AuthProvider>
+          <SmoothScrollProvider>
+            <AuthProvider>
+              {children}
+              <ThemeDock />
+            </AuthProvider>
+          </SmoothScrollProvider>
         </ThemeProvider>
       </body>
     </html>

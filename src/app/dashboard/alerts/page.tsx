@@ -11,8 +11,6 @@ import {
   Activity,
   ArrowLeft,
   Search,
-  CheckCircle2,
-  AlertCircle,
   Clock,
   Trash2,
   MoreVertical,
@@ -22,22 +20,23 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { signOutUser } from "@/lib/auth-client";
+import { useRealtimeNotifications } from "@/lib/notifications";
+import { getNotificationUi } from "@/lib/notification-ui";
 
 export default function AlertsPage() {
   const { user: authUser, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [showNotifications, setShowNotifications] = useState(false);
   const router = useRouter();
+  const { notifications, clearAllNotifications, dismissNotification } = useRealtimeNotifications(authUser?.uid, 100);
 
-  const [notifications, setNotifications] = useState([
-    { id: 1, type: 'success', title: 'Health Analysis Complete', desc: 'Your latest biometric sync shows optimal heart rate stability regarding baseline metrics.', time: '2 mins ago', icon: CheckCircle2, color: 'bg-emerald-100', iconColor: 'text-emerald-600' },
-    { id: 2, type: 'alert', title: 'Prescription Reminder', desc: 'Evening dosage for Vitamin D3 is due in 15 minutes as per Protocol v4.', time: '1 hour ago', icon: AlertCircle, color: 'bg-rose-100', iconColor: 'text-rose-600' },
-    { id: 3, type: 'info', title: 'Security Protocol Updated', desc: 'AES-256 encryption keys have been rotated successfully.', time: '3 hours ago', icon: Clock, color: 'bg-blue-100', iconColor: 'text-blue-600' },
-    { id: 4, type: 'success', title: 'Laboratory Results Ready', desc: 'Blood panel results from March 26 are now available in Records.', time: '5 hours ago', icon: FileText, color: 'bg-emerald-100', iconColor: 'text-emerald-600' }
-  ]);
+  const clearNotifications = () => {
+    void clearAllNotifications();
+  };
 
-  const clearNotifications = () => setNotifications([]);
-  const removeNotification = (id: number) => setNotifications(notifications.filter(n => n.id !== id));
+  const removeNotification = (id: string) => {
+    void dismissNotification(id);
+  };
 
   const handleLogout = async () => {
     try {
@@ -160,8 +159,11 @@ export default function AlertsPage() {
               notifications.map((n) => (
                 <div key={n.id} className="bg-white border border-slate-200 rounded-[2rem] p-6 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all group relative">
                   <div className="flex gap-6 items-start">
-                    <div className={`${n.color} p-4 rounded-[1.25rem] h-fit shadow-inner`}>
-                      <n.icon className={`w-6 h-6 ${n.iconColor}`} />
+                    <div className={`${getNotificationUi(n.type).color} p-4 rounded-[1.25rem] h-fit shadow-inner`}>
+                      {(() => {
+                        const Icon = getNotificationUi(n.type).icon;
+                        return <Icon className={`w-6 h-6 ${getNotificationUi(n.type).iconColor}`} />;
+                      })()}
                     </div>
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center justify-between">

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/providers/ThemeProvider";
 
@@ -11,6 +12,11 @@ const options = [
 
 export default function ThemeSelector({ compact = false }: { compact?: boolean }) {
   const { theme, resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const isActive = (value: "light" | "dark" | "system") => {
     if (value === "system") {
@@ -25,7 +31,9 @@ export default function ThemeSelector({ compact = false }: { compact?: boolean }
         <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Theme</span>
       )}
       <div className="inline-flex h-9 items-center gap-1 rounded-full border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900">
-        {options.map((option) => {
+        {!mounted ? (
+          <span className="inline-flex h-7 w-[120px] rounded-full bg-slate-100 dark:bg-slate-800" aria-hidden="true" />
+        ) : options.map((option) => {
           const Icon = option.icon;
           const active = isActive(option.value);
           return (

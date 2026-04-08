@@ -56,6 +56,43 @@ html.dark[data-theme="dark"] {
     color: var(--text-0);
   }
 
+  html {
+    scroll-behavior: auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  /* Convert internal app scroll containers into document flow so Lenis controls full-page scrolling. */
+  html.lenis main.h-screen.overflow-hidden {
+    height: auto !important;
+    min-height: 100vh;
+    overflow: visible !important;
+  }
+
+  html.lenis main.h-screen.overflow-hidden > .overflow-y-auto,
+  html.lenis .min-h-screen .overflow-y-auto {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
   html:not(.dark),
   html:not(.dark) body {
     background-color: #ffffff;

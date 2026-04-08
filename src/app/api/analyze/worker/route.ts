@@ -5,6 +5,7 @@ import { buildClinicalAssessment } from "@/lib/clinical-analysis";
 import { analyzeFormSchema } from "@/lib/analyze-schema";
 import { createRequestId, logEvent, safeErrorMessage } from "@/lib/observability";
 import { recordMetric } from "@/lib/metrics";
+import { createNotification } from "@/lib/notifications-server";
 
 const WORKER_TIMEOUT_MS = 10_000;
 
@@ -79,6 +80,15 @@ export async function POST(request: NextRequest) {
         },
         { merge: true }
       );
+
+      await createNotification({
+        userId: job.userId,
+        type: "alert",
+        title: "Analysis Failed",
+        desc: `Report ${job.reportId.slice(0, 8).toUpperCase()} could not be processed.`,
+        reportId: job.reportId,
+      }).catch(() => undefined);
+
       return NextResponse.json({ success: false, processed: false }, { status: 404 });
     }
 
@@ -103,6 +113,14 @@ export async function POST(request: NextRequest) {
           { merge: true }
         ),
       ]);
+
+      await createNotification({
+        userId: job.userId,
+        type: "alert",
+        title: "Analysis Rejected",
+        desc: `Report ${job.reportId.slice(0, 8).toUpperCase()} has invalid payload data.`,
+        reportId: job.reportId,
+      }).catch(() => undefined);
 
       return NextResponse.json({ success: false, processed: true }, { status: 400 });
     }
@@ -143,6 +161,14 @@ export async function POST(request: NextRequest) {
         { merge: true }
       ),
     ]);
+
+    await createNotification({
+      userId: job.userId,
+      type: "success",
+      title: "Health Analysis Complete",
+      desc: `Report ${job.reportId.slice(0, 8).toUpperCase()} is ready to review.`,
+      reportId: job.reportId,
+    }).catch(() => undefined);
 
     logEvent("info", "analyze.worker_done", {
       requestId,

@@ -8,6 +8,7 @@ import { createRequestId, logEvent, safeErrorMessage } from "@/lib/observability
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { isTrustedSameOrigin, secureApiHeaders } from "@/lib/request-security";
 import { recordMetric } from "@/lib/metrics";
+import { createNotification } from "@/lib/notifications-server";
 
 const MAX_BODY_BYTES = 32 * 1024;
 
@@ -140,6 +141,14 @@ export async function POST(request: NextRequest) {
         createdAt: now,
       });
     }
+
+    await createNotification({
+      userId: session.uid,
+      type: "info",
+      title: "Assessment Queued",
+      desc: `Your report ${reportRef.id.slice(0, 8).toUpperCase()} has been queued for analysis.`,
+      reportId: reportRef.id,
+    }).catch(() => undefined);
 
     const workerToken = process.env.ANALYZE_WORKER_SECRET;
     const workerUrl = new URL("/api/analyze/drain?batch=3", request.nextUrl.origin);

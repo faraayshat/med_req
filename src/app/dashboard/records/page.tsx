@@ -21,11 +21,11 @@ import {
   Download,
   LogOut,
   Bell,
-  CheckCircle2,
-  AlertCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useRealtimeNotifications } from "@/lib/notifications";
+import { getNotificationUi } from "@/lib/notification-ui";
 
 export default function RecordsPage() {
   const { user: authUser, loading: authLoading } = useAuth();
@@ -36,14 +36,16 @@ export default function RecordsPage() {
   const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState([
-    { id: 1, type: 'success', title: 'Health Analysis Complete', desc: 'Your latest biometric sync shows optimal heart rate stability.', time: '2 mins ago', icon: CheckCircle2, color: 'bg-emerald-100', iconColor: 'text-emerald-600' },
-    { id: 2, type: 'alert', title: 'Prescription Reminder', desc: 'Evening dosage for Vitamin D3 is due in 15 minutes.', time: '1 hour ago', icon: AlertCircle, color: 'bg-rose-100', iconColor: 'text-rose-600' }
-  ]);
   const router = useRouter();
+  const { notifications, clearAllNotifications, dismissNotification } = useRealtimeNotifications(authUser?.uid);
 
-  const clearNotifications = () => setNotifications([]);
-  const removeNotification = (id: number) => setNotifications(notifications.filter(n => n.id !== id));
+  const clearNotifications = () => {
+    void clearAllNotifications();
+  };
+
+  const removeNotification = (id: string) => {
+    void dismissNotification(id);
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -205,8 +207,11 @@ export default function RecordsPage() {
                         {notifications.length > 0 ? (
                           notifications.map((n) => (
                             <div key={n.id} className="p-5 flex gap-4 hover:bg-slate-50 transition-colors cursor-pointer group border-b border-slate-50 relative">
-                              <div className={`${n.color} p-2 rounded-xl h-fit`}>
-                                <n.icon className={`w-4 h-4 ${n.iconColor}`} />
+                              <div className={`${getNotificationUi(n.type).color} p-2 rounded-xl h-fit`}>
+                                {(() => {
+                                  const Icon = getNotificationUi(n.type).icon;
+                                  return <Icon className={`w-4 h-4 ${getNotificationUi(n.type).iconColor}`} />;
+                                })()}
                               </div>
                               <div className="flex-1 pr-4">
                                 <p className="text-[10px] font-bold text-slate-950 leading-tight mb-1">{n.title}</p>
