@@ -19,6 +19,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "HealthMed - Personal Health Data & Recommendations",
   description: "Manage your health data and get personal recommendations.",
+  icons: {
+    icon: "/hm_logo.svg",
+    shortcut: "/hm_logo.svg",
+    apple: "/hm_logo.svg",
+  },
 };
 
 export default function RootLayout({

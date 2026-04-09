@@ -12,7 +12,6 @@ import {
   TrendingUp, 
   User, 
   ArrowRight, 
-  Heart, 
   ClipboardList,
   Calendar,
   LogOut,
@@ -31,6 +30,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useRealtimeNotifications } from "@/lib/notifications";
 import { getNotificationUi } from "@/lib/notification-ui";
+import BrandLogo from "@/components/brand/BrandLogo";
 
 export default function Dashboard() {
   const { user: authUser, loading: authLoading } = useAuth();
@@ -91,9 +91,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-slate-50 selection:bg-rose-100 selection:text-rose-900 flex flex-col lg:flex-row antialiased">
       <aside className="hidden lg:flex w-20 xl:w-72 bg-white border-r border-slate-200 flex-col sticky top-0 h-screen transition-all duration-500 ease-in-out group/sidebar">
         <div className="p-6 xl:p-8 flex items-center gap-4">
-          <div className="bg-rose-600 p-2.5 rounded-xl shadow-lg shadow-rose-200 group-hover/sidebar:rotate-[10deg] transition-transform">
-            <Heart className="w-5 h-5 text-white fill-white/20" />
-          </div>
+          <BrandLogo size={40} className="rounded-xl shadow-lg shadow-rose-200 group-hover/sidebar:rotate-[10deg] transition-transform" />
           <span className="hidden xl:block text-base font-black text-slate-950 tracking-tighter uppercase italic">Health<span className="text-rose-600">Med</span></span>
         </div>
 
@@ -117,8 +115,8 @@ export default function Dashboard() {
       <main className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
         <header className="h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200 px-6 xl:px-10 flex items-center justify-between shrink-0 sticky top-0 z-50">
           <div className="flex items-center gap-4">
-            <div className="lg:hidden bg-rose-600 p-1.5 rounded-lg">
-              <Heart className="w-3.5 h-3.5 text-white" />
+            <div className="lg:hidden">
+              <BrandLogo size={28} className="rounded-lg" />
             </div>
             <h1 className="text-lg xl:text-xl font-[1000] text-slate-950 tracking-tighter flex items-center gap-2.5">
               Dashboard <span className="text-slate-200 font-light">/</span> <span className="text-rose-600 text-xs xl:text-sm italic uppercase tracking-widest font-black">Overview</span>

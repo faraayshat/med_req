@@ -6,8 +6,9 @@ import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { syncSessionForUser } from "@/lib/auth-client";
-import { Heart, Mail, Lock, Languages, ArrowRight, ShieldCheck, Activity } from "lucide-react";
+import { Mail, Lock, Languages, ArrowRight, Activity } from "lucide-react";
 import { motion } from "framer-motion";
+import BrandLogo from "@/components/brand/BrandLogo";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -46,9 +47,7 @@ export default function Login() {
          <div className="absolute -bottom-20 -left-20 w-[60%] h-[60%] bg-emerald-500/5 rounded-full blur-[100px] -z-0" />
          
          <div className="relative z-10 flex items-center gap-4">
-            <div className="bg-rose-600 p-2.5 rounded-2xl shadow-2xl shadow-rose-900/50">
-               <ShieldCheck className="w-7 h-7 text-white" />
-            </div>
+          <BrandLogo size={56} className="rounded-2xl shadow-2xl shadow-rose-900/50" priority />
             <span className="text-xl xl:text-2xl font-[1000] text-white tracking-[0.2em] italic uppercase">Health<span className="text-rose-600">Med</span></span>
          </div>
 

@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { Heart, Activity, ShieldCheck, ClipboardPlus, Stethoscope, ChevronRight, LayoutDashboard } from 'lucide-react';
+import { Activity, ShieldCheck, ClipboardPlus, Stethoscope, ChevronRight, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/components/providers/AuthProvider';
 import ThemeSelector from '@/components/theme/ThemeSelector';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -13,9 +14,7 @@ export default function Home() {
       <nav className="fixed top-0 inset-x-0 z-[100] p-4 sm:p-6">
         <div className="max-w-4xl mx-auto grid grid-cols-[auto_1fr_auto] items-center gap-3 bg-white/90 backdrop-blur-md border border-slate-200/50 p-2 rounded-full shadow-sm dark:bg-slate-900/90 dark:border-slate-700/70 dark:shadow-none">
           <div className="flex items-center gap-2 group px-4">
-            <div className="bg-rose-600 p-1.5 rounded-lg flex items-center justify-center">
-              <Heart className="w-4 h-4 text-white fill-white/20" />
-            </div>
+            <BrandLogo size={30} className="rounded-lg" priority />
             <span className="text-sm font-bold tracking-tighter uppercase italic text-slate-900 dark:text-slate-100">Health<span className="text-rose-600 dark:text-rose-400">Med</span></span>
           </div>
           
@@ -142,9 +141,7 @@ export default function Home() {
       <footer className="py-12 px-6 border-t border-slate-100 bg-white">
         <div className="max-w-4xl mx-auto flex flex-col items-center space-y-8">
            <div className="flex items-center gap-2">
-              <div className="bg-rose-600 p-1.5 rounded-lg flex items-center justify-center">
-                 <Heart className="w-4 h-4 text-white" />
-              </div>
+              <BrandLogo size={30} className="rounded-lg" />
               <span className="text-lg font-bold tracking-tighter uppercase italic">Health<span className="text-rose-600">Med</span></span>
            </div>
            <div className="flex gap-8 text-[9px] font-bold uppercase tracking-widest text-slate-400">

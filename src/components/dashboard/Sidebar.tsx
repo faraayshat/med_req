@@ -5,7 +5,6 @@ import {
   LayoutDashboard, 
   FileText, 
   Activity, 
-  Heart,
   Settings,
   LogOut,
   ShieldCheck
@@ -13,6 +12,7 @@ import {
 import { useRouter } from "next/navigation";
 import { signOutUser } from "@/lib/auth-client";
 import ThemeSelector from "@/components/theme/ThemeSelector";
+import BrandLogo from "@/components/brand/BrandLogo";
 
 interface SidebarProps {
   activePath?: string;
@@ -35,9 +35,7 @@ export default function Sidebar({ activePath = "/dashboard" }: SidebarProps) {
   return (
     <aside className="hidden lg:flex w-20 xl:w-72 bg-white border-r border-slate-200 flex-col sticky top-0 h-screen transition-all duration-500 ease-in-out group/sidebar dark:bg-slate-950 dark:border-slate-800">
       <div className="p-6 xl:p-8 flex items-center gap-4">
-        <div className="bg-rose-600 p-2.5 rounded-xl shadow-lg shadow-rose-200 group-hover/sidebar:rotate-[10deg] transition-transform">
-          <Heart className="w-5 h-5 text-white fill-white/20" />
-        </div>
+        <BrandLogo size={40} className="rounded-xl shadow-lg shadow-rose-200 group-hover/sidebar:rotate-[10deg] transition-transform" />
         <span className="hidden xl:block text-base font-black text-slate-950 tracking-tighter uppercase italic dark:text-slate-100">Health<span className="text-rose-600">Med</span></span>
       </div>
 
