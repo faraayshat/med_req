@@ -20,7 +20,10 @@ export const metadata: Metadata = {
   title: "HealthMed - Personal Health Data & Recommendations",
   description: "Manage your health data and get personal recommendations.",
   icons: {
-    icon: "/hm_logo.svg",
+    icon: [
+      { url: "/hm_logo.svg", media: "(prefers-color-scheme: light)" },
+      { url: "/hm_logo_w.svg", media: "(prefers-color-scheme: dark)" },
+    ],
     shortcut: "/hm_logo.svg",
     apple: "/hm_logo.svg",
   },

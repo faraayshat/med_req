@@ -1,4 +1,6 @@
-import Image from "next/image";
+"use client";
+
+import { useTheme } from "@/components/providers/ThemeProvider";
 
 interface BrandLogoProps {
   size?: number;
@@ -13,14 +15,19 @@ export default function BrandLogo({
   alt = "HealthMed logo",
   priority = false,
 }: BrandLogoProps) {
+  const { resolvedTheme } = useTheme();
+  const baseClassName = `object-contain ${className}`.trim();
+  const src = resolvedTheme === "dark" ? "/hm_logo_w.svg" : "/hm_logo.svg";
+
   return (
-    <Image
-      src="/hm_logo.svg"
+    <img
+      src={src}
       alt={alt}
       width={size}
       height={size}
-      priority={priority}
-      className={`object-contain ${className}`.trim()}
+      className={baseClassName}
+      loading={priority ? "eager" : "lazy"}
+      decoding="async"
     />
   );
 }
