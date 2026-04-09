@@ -5,8 +5,8 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDocs,
   limit,
-  onSnapshot,
   orderBy,
   query,
   where,
@@ -47,6 +47,8 @@ export function useRealtimeNotifications(userId?: string, maxItems = 25) {
   const [loadingNotifications, setLoadingNotifications] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
     if (!userId) {
       setNotifications([]);
       setLoadingNotifications(false);
@@ -60,9 +62,13 @@ export function useRealtimeNotifications(userId?: string, maxItems = 25) {
       limit(maxItems)
     );
 
-    const unsub = onSnapshot(
-      q,
-      (snapshot) => {
+    const fetchNotifications = async () => {
+      try {
+        const snapshot = await getDocs(q);
+        if (cancelled) {
+          return;
+        }
+
         const items = snapshot.docs
           .map((item) => {
             const data = item.data() as Record<string, unknown>;
@@ -83,18 +89,27 @@ export function useRealtimeNotifications(userId?: string, maxItems = 25) {
           .filter((value): value is AppNotification => value !== null);
 
         setNotifications(items);
-        setLoadingNotifications(false);
-      },
-      () => {
-        setLoadingNotifications(false);
+      } finally {
+        if (!cancelled) {
+          setLoadingNotifications(false);
+        }
       }
-    );
+    };
 
-    return () => unsub();
+    void fetchNotifications();
+    const intervalId = window.setInterval(() => {
+      void fetchNotifications();
+    }, 10000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
   }, [userId, maxItems]);
 
   const dismissNotification = async (notificationId: string) => {
     await deleteDoc(doc(db, "notifications", notificationId));
+    setNotifications((prev) => prev.filter((item) => item.id !== notificationId));
   };
 
   const clearAllNotifications = async () => {
@@ -106,6 +121,7 @@ export function useRealtimeNotifications(userId?: string, maxItems = 25) {
       batch.delete(doc(db, "notifications", item.id));
     });
     await batch.commit();
+    setNotifications([]);
   };
 
   const enrichedNotifications = useMemo(
